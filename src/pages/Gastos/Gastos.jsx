@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 import axios from "axios";
 
@@ -7,17 +7,36 @@ function Gastos(){
     const [valor, setValor] = useState("");
     const [data, setData] = useState("");
     const [descricao, setDescricao] = useState("");
+    const [gastos, setGastos] = useState([]);
+
+    useEffect(() => {
+        const token = localStorage.getItem('token');
+        axios.get('http://localhost:8080/gastos', {
+    headers: {
+        Authorization: `Bearer ${token}`
+    }
+})
+            .then(response => {
+                setGastos(response.data);
+            })
+            .catch(error => {
+                console.error('Erro ao buscar gastos:', error);
+            });
+    }, []);
 
     const handleSubmit = (e) => {
         e.preventDefault();
+        const token = localStorage.getItem('token');
         axios.post ('http://localhost:8080/gastos', {
             categoria,
             valor,
             data,
             descricao
 
-        
-        })
+        }, {headers: {
+            Authorization: `Bearer ${token}`
+        }})
+
         .then(responde => {
             console.log('Gasto adicionado com sucesso:', responde.data);
         })
@@ -70,7 +89,28 @@ function Gastos(){
                 />
                 <button type="submit">Adicionar Gasto</button>
             </form>
-        
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Categoria</th>
+                        <th>Valor</th>
+                        <th>Data</th>
+                        <th>Descrição</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {gastos.map((gasto) => (
+                        <tr key={gasto.id}>
+                            <td>{gasto.categoria}</td>
+                            <td>{gasto.valor}</td>
+                            <td>{gasto.data}</td>
+                            <td>{gasto.descricao}</td>
+                        </tr>
+                    ))}
+                </tbody>
+            </table>
+
         </div>
     )
 

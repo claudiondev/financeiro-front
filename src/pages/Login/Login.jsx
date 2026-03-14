@@ -16,7 +16,8 @@ function Login() {
     e.preventDefault();
     axios.post('http://localhost:8080/auth/login', { email, senha })
       .then(response => {
-        console.log('Login bem-sucedido:', response.data);
+    console.log('Login bem-sucedido:', response.data);
+    localStorage.setItem('token', response.data); 
         // Aqui você pode redirecionar o usuário ou armazenar o token de autenticação
       })
       .catch(error => {
