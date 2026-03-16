@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect,} from "react";
 
 import axios from "axios";
 
@@ -9,20 +9,31 @@ function Gastos(){
     const [descricao, setDescricao] = useState("");
     const [gastos, setGastos] = useState([]);
 
-    useEffect(() => {
+    function buscarGastos() {
         const token = localStorage.getItem('token');
         axios.get('http://localhost:8080/gastos', {
     headers: {
         Authorization: `Bearer ${token}`
+        }
+    })
+    
+    .then(response => {
+        setGastos(response.data);
+       
+    })
+    .catch(error => {
+        console.error('Erro ao buscar gastos:', error);
+        
+        
+}) 
+
+
     }
-})
-            .then(response => {
-                setGastos(response.data);
-            })
-            .catch(error => {
-                console.error('Erro ao buscar gastos:', error);
-            });
-    }, []);
+
+    useEffect(() => {
+        buscarGastos();
+    }, []);    
+
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -39,6 +50,7 @@ function Gastos(){
 
         .then(responde => {
             console.log('Gasto adicionado com sucesso:', responde.data);
+            buscarGastos();
         })
         .catch(error => {
             console.error('Erro ao adicionar gasto:', error);
