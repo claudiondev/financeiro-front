@@ -1,8 +1,12 @@
 import { useState, useEffect } from "react";
+
 import axios from "axios";
+
+import { Link, useNavigate } from 'react-router-dom'; 
 
 function Resumo() {
     const [resumo, setResumo] = useState(null);
+    const navigate = useNavigate();
     
     function buscarResumo() {
         const token = localStorage.getItem('token');
@@ -32,6 +36,11 @@ function Resumo() {
             <p>Total Gastos: {resumo.totalGasto}</p>
             <p>Saldo: {resumo.saldo}</p>
             <p>{resumo.mensagem}</p>
+
+        <button type="button" onClick={() => navigate('/gastos')}>Adicionar novo gasto</button>   
+        <button type="button" onClick={() => navigate('/salarios')}>Salario</button>   
+
+
             
         </div>
     )

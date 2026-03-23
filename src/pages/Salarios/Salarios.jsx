@@ -162,7 +162,8 @@ function buscarSalarios() {
                 </tbody>
             </table>
 
-        <button type="button" onClick={() => navigate('/gastos')}>Gastos</button>   
+        <button type="button" onClick={() => navigate('/gastos')}>Gastos</button>  
+        <button type="button" onClick={() => navigate('/resumo')}>Resumo</button>    
 
        </div>
 
