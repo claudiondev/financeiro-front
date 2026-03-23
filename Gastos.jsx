@@ -2,8 +2,6 @@ import { useState, useEffect,} from "react";
 
 import axios from "axios";
 
-import { Link, useNavigate } from 'react-router-dom'; 
-
 
 function Gastos(){
     const [categoria, setCategoria] = useState("");
@@ -11,7 +9,6 @@ function Gastos(){
     const [data, setData] = useState("");
     const [descricao, setDescricao] = useState("");
     const [gastos, setGastos] = useState([]);
-    const navigate = useNavigate();
     
     function buscarGastos() {
         const token = localStorage.getItem('token');
@@ -157,8 +154,6 @@ function Gastos(){
                     ))}
                 </tbody>
             </table>
-
-            <button type="button" onClick={() => navigate('/resumo')}>Resumo</button>   
 
         </div>
     )

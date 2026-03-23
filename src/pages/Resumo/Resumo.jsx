@@ -1,0 +1,40 @@
+import { useState, useEffect } from "react";
+import axios from "axios";
+
+function Resumo() {
+    const [resumo, setResumo] = useState(null);
+    
+    function buscarResumo() {
+        const token = localStorage.getItem('token');
+        axios.get("http://localhost:8080/gastos/resumo", {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        })
+        .then(response => {
+            setResumo(response.data);
+        })
+        .catch(error => {
+            console.error('Erro ao buscar resumo:', error);
+        })
+    }
+
+    useEffect(() => {
+        buscarResumo();
+    }, []);
+
+    if (!resumo) return <p>Carregando...</p>;
+
+    return (
+        <div>
+            <h1>Resumo</h1>
+            <p>Total Salário: {resumo.totalSalario}</p>
+            <p>Total Gastos: {resumo.totalGasto}</p>
+            <p>Saldo: {resumo.saldo}</p>
+            <p>{resumo.mensagem}</p>
+            
+        </div>
+    )
+}
+
+export default Resumo;

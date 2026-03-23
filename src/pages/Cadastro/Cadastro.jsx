@@ -2,7 +2,7 @@ import { useState } from "react";
 
 import axios from "axios";
 
-import { Link } from "react-router-dom";
+import { Link, useNavigate,} from "react-router-dom";
 
 
 
@@ -11,6 +11,7 @@ function Cadastro() {
     const [email, setEmail] = useState("");
     const [senha, setSenha] = useState("");
     const [repetirSenha, setRepetirSenha] = useState("");
+    const navigate = useNavigate();
 
     const handleSubmit = (e) => {
       e.preventDefault();
@@ -21,7 +22,8 @@ function Cadastro() {
       axios.post('http://localhost:8080/auth/registrar', { email, senha, usuario, repetirSenha })
         .then(response => {
           console.log('Cadastro bem-sucedido:', response.data);
-          // Aqui você pode redirecionar o usuário ou armazenar o token de autenticação
+          navigate('/login')
+          
         })
        .catch(error => {
         console.error('Erro ao fazer cadastro:', error);
@@ -31,7 +33,7 @@ function Cadastro() {
   return (
     <div>
       <h1>Cadastro</h1>
-        <form>
+        <form  onSubmit={handleSubmit}>
           <div>
             <label htmlFor="usuario">Nome:</label>
             <input type="text" id="usuario" value={usuario} onChange={(e) => setUsuario(e.target.value)} />
@@ -48,7 +50,7 @@ function Cadastro() {
             <label htmlFor="repetirSenha">Repita a Senha:</label>
             <input type="password" id="repetirSenha" value={repetirSenha} onChange={(e) => setRepetirSenha(e.target.value)} />
           </div>
-          <button type="submit" onClick={handleSubmit}>
+          <button type="submit">
             Cadastrar
           </button>
         </form>
