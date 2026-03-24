@@ -1,60 +1,130 @@
 import { useState } from "react";
-
 import axios from "axios";
-
-import { Link, useNavigate,} from "react-router-dom";
-
-
+import { Link, useNavigate } from "react-router-dom";
+import logo from '../../assets/logo.png'; // Importando seu logo
 
 function Cadastro() {
     const [usuario, setUsuario] = useState("");
     const [email, setEmail] = useState("");
     const [senha, setSenha] = useState("");
     const [repetirSenha, setRepetirSenha] = useState("");
+    const [erro, setErro] = useState(""); // Adicionei estado de erro visual
     const navigate = useNavigate();
 
     const handleSubmit = (e) => {
       e.preventDefault();
+      setErro("");
+
       if (senha !== repetirSenha) {
-        console.error('As senhas não coincidem');
+        setErro('As senhas não coincidem');
         return; 
       }
+
       axios.post('http://localhost:8080/auth/registrar', { email, senha, usuario, repetirSenha })
         .then(response => {
-          console.log('Cadastro bem-sucedido:', response.data);
-          navigate('/login')
-          
+          navigate('/login');
         })
        .catch(error => {
-        console.error('Erro ao fazer cadastro:', error);
-        // Aqui você pode exibir uma mensagem de erro para o usuário
-      }) };
+        setErro('Erro ao realizar cadastro. Tente novamente.');
+      });
+    };
 
   return (
-    <div>
-      <h1>Cadastro</h1>
-        <form  onSubmit={handleSubmit}>
-          <div>
-            <label htmlFor="usuario">Nome:</label>
-            <input type="text" id="usuario" value={usuario} onChange={(e) => setUsuario(e.target.value)} />
+    // Fundo centralizado identico ao Login
+    <div className="min-h-screen bg-brand-dark flex flex-col items-center justify-center p-4 font-sans text-brand-text-main">
+      
+      {/* Logo e Título */}
+      <div className="flex flex-col items-center mb-8 text-center text-brand-text-sub">
+        <img src={logo} alt="Logo" className="w-56 h-auto mb-3" />
+        <p className="text-sm font-light uppercase tracking-widest opacity-80">
+           Crie sua conta gratuita
+        </p>
+      </div>
+
+      {/* Card de Cadastro (Mesmo tamanho do Login para padronizar) */}
+      <div className="bg-brand-card p-8 rounded-3xl shadow-2xl w-full max-w-sm border border-neutral-800/60">
+        <div className="mb-6 text-center">
+          <h2 className="text-xl font-bold">Comece agora 🚀</h2>
+          <p className="text-brand-text-sub text-sm">Preencha os dados abaixo</p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          
+          {/* Campo Nome/Usuário */}
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-medium text-brand-text-sub ml-1 uppercase tracking-wider">Nome</label>
+            <input
+              type="text"
+              placeholder="Seu nome completo"
+              value={usuario}
+              onChange={(e) => setUsuario(e.target.value)}
+              className="bg-neutral-800/50 border border-neutral-700 text-brand-text-main text-sm rounded-xl p-3 outline-none focus:border-brand-blue transition-all"
+              required
+            />
           </div>
-          <div>
-            <label htmlFor="email">Email:</label>
-            <input type="email" id="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+
+          {/* Campo Email */}
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-medium text-brand-text-sub ml-1 uppercase tracking-wider">Email</label>
+            <input
+              type="email"
+              placeholder="seu@email.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="bg-neutral-800/50 border border-neutral-700 text-brand-text-main text-sm rounded-xl p-3 outline-none focus:border-brand-blue transition-all"
+              required
+            />
           </div>
-          <div>
-            <label htmlFor="senha">Senha:</label>
-            <input type="password" id="senha" value={senha} onChange={(e) => setSenha(e.target.value)} />
+
+          {/* Campo Senha */}
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-medium text-brand-text-sub ml-1 uppercase tracking-wider">Senha</label>
+            <input
+              type="password"
+              placeholder="Crie uma senha"
+              value={senha}
+              onChange={(e) => setSenha(e.target.value)}
+              className="bg-neutral-800/50 border border-neutral-700 text-brand-text-main text-sm rounded-xl p-3 outline-none focus:border-brand-blue transition-all"
+              required
+            />
           </div>
-            <div>
-            <label htmlFor="repetirSenha">Repita a Senha:</label>
-            <input type="password" id="repetirSenha" value={repetirSenha} onChange={(e) => setRepetirSenha(e.target.value)} />
+
+          {/* Campo Repetir Senha */}
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-medium text-brand-text-sub ml-1 uppercase tracking-wider">Confirmar Senha</label>
+            <input
+              type="password"
+              placeholder="Repita a senha"
+              value={repetirSenha}
+              onChange={(e) => setRepetirSenha(e.target.value)}
+              className="bg-neutral-800/50 border border-neutral-700 text-brand-text-main text-sm rounded-xl p-3 outline-none focus:border-brand-blue transition-all"
+              required
+            />
           </div>
-          <button type="submit">
-            Cadastrar
+
+          {/* Mensagem de Erro Visual */}
+          {erro && (
+            <p className="text-red-500 text-[11px] font-medium bg-red-500/10 p-2.5 rounded-lg border border-red-500/20 text-center">
+              {erro}
+            </p>
+          )}
+
+          {/* Botão Cadastrar */}
+          <button
+            type="submit"
+            className="w-full bg-brand-blue hover:bg-blue-600 text-white font-bold text-base rounded-xl p-3.5 transition-all mt-4 active:scale-[0.98] shadow-lg shadow-brand-blue/20"
+          >
+            Finalizar Cadastro
           </button>
         </form>
-        <Link to="/login">Já tem uma conta? Faça login</Link>  
+
+        <div className="text-center mt-6 text-sm text-brand-text-sub">
+          Já tem uma conta?{' '}
+          <Link to="/login" className="text-brand-blue font-bold hover:underline underline-offset-4 decoration-2">
+            Fazer login
+          </Link>
+        </div>
+      </div>
     </div>
   );
 }
