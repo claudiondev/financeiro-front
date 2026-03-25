@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import axios from "axios";
+import api from "../../services/api"; // 1. Usando sua nova configuração centralizada
 import { useNavigate } from 'react-router-dom';
 import logo from '../../assets/logo.png'; 
 
@@ -11,68 +11,57 @@ function Gastos() {
     const [gastos, setGastos] = useState([]);
     const navigate = useNavigate();
 
-    const buscarGastos = () => {
-        const token = localStorage.getItem('token');
-        
-        // Trava de segurança para não dar erro de JWT se o token sumir
-        if (!token || token === "null") {
-            navigate('/login');
-            return;
-        }
-
-        axios.get('http://localhost:8080/gastos', {
-            headers: { Authorization: `Bearer ${token}` }
-        })
-        .then(response => {
+    // 2. BUSCAR GASTOS (Sem precisar passar o token manualmente)
+    const buscarGastos = async () => {
+        try {
+            const response = await api.get('/gastos'); 
             setGastos(response.data);
-        })
-        .catch(error => {
+        } catch (error) {
             console.error('Erro ao buscar gastos:', error);
-            if (error.response && error.response.status === 403) {
+            // Se o token estiver vencido ou inválido (403), volta pro login
+            if (error.response && (error.response.status === 403 || error.response.status === 401)) {
                 navigate('/login');
             }
-        });
+        }
     };
 
     useEffect(() => {
-        buscarGastos();
+        const token = localStorage.getItem('token');
+        if (!token || token === "null") {
+            navigate('/login');
+        } else {
+            buscarGastos();
+        }
     }, []);
 
-    const handleSubmit = (e) => {
+    // 3. ADICIONAR GASTO (Código muito mais limpo)
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        const token = localStorage.getItem('token');
-        
-        axios.post('http://localhost:8080/gastos', {
-            categoria, valor, data, descricao
-        }, {
-            headers: { Authorization: `Bearer ${token}` }
-        })
-        .then(() => {
+        try {
+            await api.post('/gastos', { categoria, valor, data, descricao });
             buscarGastos();
             setCategoria(""); setValor(""); setDescricao(""); setData("");
-        })
-        .catch(error => {
+        } catch (error) {
             console.error('Erro ao adicionar gasto:', error);
-        });
+        }
     };
 
-    const deletarGastos = (id) => {
-        const token = localStorage.getItem('token');
-        axios.delete(`http://localhost:8080/gastos/${id}`, {
-            headers: { Authorization: `Bearer ${token}` }
-        })
-        .then(() => {
+    // 4. DELETAR GASTO
+    const deletarGastos = async (id) => {
+        if (!window.confirm("Tem certeza que deseja apagar?")) return;
+        
+        try {
+            await api.delete(`/gastos/${id}`);
             buscarGastos();
-        })
-        .catch(error => {
+        } catch (error) {
             console.error('Erro ao deletar gasto:', error);
-        });
+        }
     };
 
     return (
         <div className="min-h-screen bg-brand-dark text-brand-text-main font-sans">
             
-            {/* HEADER PADRONIZADO */}
+            {/* HEADER - Mantive toda a sua estrutura visual e cores */}
             <header className="bg-brand-card border-b border-neutral-800 p-4 shadow-md">
                 <div className="max-w-6xl mx-auto flex justify-between items-center">
                     <div className="flex items-center gap-4">
@@ -81,7 +70,6 @@ function Gastos() {
                         <span className="text-lg font-bold tracking-tight text-brand-text-main hidden sm:block">Gastos</span>
                     </div>
                     <nav className="flex gap-5">
-                        {/* Botões em Azul como você pediu */}
                         <button onClick={() => navigate('/salarios')} className="text-sm text-brand-blue hover:brightness-125 font-bold transition-all uppercase tracking-wider">Salário</button>
                         <button onClick={() => navigate('/resumo')} className="text-sm text-brand-blue hover:brightness-125 font-bold transition-all uppercase tracking-wider">Resumo</button>
                     </nav>
@@ -90,7 +78,7 @@ function Gastos() {
 
             <main className="max-w-6xl mx-auto p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
                 
-                {/* FORMULÁRIO DE GASTOS */}
+                {/* FORMULÁRIO - Mantive o seu design red-400/red-500 */}
                 <section className="lg:col-span-1">
                     <div className="bg-brand-card p-6 rounded-2xl border border-neutral-800 shadow-lg">
                         <h2 className="text-sm font-bold mb-5 text-red-400 uppercase tracking-widest">Novo Gasto</h2>
@@ -122,7 +110,7 @@ function Gastos() {
                     </div>
                 </section>
 
-                {/* TABELA DE GASTOS */}
+                {/* TABELA - Sem alterações no estilo, apenas nas chamadas de dados */}
                 <section className="lg:col-span-2">
                     <div className="bg-brand-card rounded-2xl border border-neutral-800 shadow-lg overflow-hidden">
                         <table className="w-full text-left text-sm">

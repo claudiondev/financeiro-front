@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import axios from "axios";
+import api from "../../services/api"; // Usando sua configuração centralizada
 import { useNavigate } from 'react-router-dom';
 import logo from '../../assets/logo.png'; 
 
@@ -12,59 +12,66 @@ function Salario() {
     const [listaSalarios, setListaSalarios] = useState([]); 
     const navigate = useNavigate();
 
-    const buscarSalarios = () => {
+    // 1. BUSCAR SALÁRIOS
+    const buscarSalarios = async () => {
+        try {
+            const response = await api.get('/salario');
+            setListaSalarios(response.data);
+        } catch (error) {
+            console.error('Erro ao buscar:', error);
+            // Se o token falhar, volta para o login
+            if (error.response && (error.response.status === 403 || error.response.status === 401)) {
+                navigate('/login');
+            }
+        }
+    };
+
+    useEffect(() => { 
         const token = localStorage.getItem('token');
         if (!token || token === "null") {
             navigate('/login');
-            return;
+        } else {
+            buscarSalarios(); 
         }
-        axios.get('http://localhost:8080/salario', {
-            headers: { Authorization: `Bearer ${token}` }
-        })
-        .then(response => { setListaSalarios(response.data); })
-        .catch(error => { console.error('Erro ao buscar:', error); });
-    };
+    }, []);
 
-    useEffect(() => { buscarSalarios(); }, []);
-
-    const handleSubmit = (e) => {
+    // 2. SALVAR SALÁRIO
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        const token = localStorage.getItem('token');
-        axios.post('http://localhost:8080/salario', {
-            valor, comissao, adicional, descricao, data
-        }, {
-            headers: { Authorization: `Bearer ${token}` }
-        })
-        .then(() => {
+        try {
+            await api.post('/salario', {
+                valor, comissao, adicional, descricao, data
+            });
             buscarSalarios();
             setValor(""); setComissao(""); setAdicional(""); setDescricao(""); setData("");
-        })
-        .catch(error => { console.log('Erro ao adicionar:', error); });
+        } catch (error) {
+            console.error('Erro ao adicionar:', error);
+        }
     };
 
-    const deletarSalario = (id) => {
-        const token = localStorage.getItem('token');
-        axios.delete(`http://localhost:8080/salario/${id}`, {
-            headers: { Authorization: `Bearer ${token}` }
-        })
-        .then(() => { buscarSalarios(); })
-        .catch(error => { console.error('Erro ao deletar:', error); });
+    // 3. DELETAR SALÁRIO
+    const deletarSalario = async (id) => {
+        if (!window.confirm("Tem certeza que deseja apagar este salário?")) return;
+
+        try {
+            await api.delete(`/salario/${id}`);
+            buscarSalarios();
+        } catch (error) {
+            console.error('Erro ao deletar:', error);
+        }
     };
 
     return (
         <div className="min-h-screen bg-brand-dark text-brand-text-main font-sans">
             
-            {/* HEADER COM NOME "SALÁRIO" E BOTÕES AZUIS */}
             <header className="bg-brand-card border-b border-neutral-800 p-4 shadow-md">
                 <div className="max-w-6xl mx-auto flex justify-between items-center">
                     <div className="flex items-center gap-4">
                         <img src={logo} alt="Logo" className="w-24 h-auto" />
                         <div className="h-6 w-[1px] bg-neutral-700 hidden sm:block"></div>
-                        {/* Nome ajustado para Salário */}
                         <span className="text-lg font-bold tracking-tight text-brand-text-main hidden sm:block">Salário</span>
                     </div>
                     <nav className="flex gap-5">
-                        {/* Botões com a cor Azul da marca */}
                         <button onClick={() => navigate('/gastos')} className="text-sm text-brand-blue hover:brightness-125 font-bold transition-all uppercase tracking-wider">Gastos</button>
                         <button onClick={() => navigate('/resumo')} className="text-sm text-brand-blue hover:brightness-125 font-bold transition-all uppercase tracking-wider">Resumo</button>
                     </nav>
@@ -73,7 +80,6 @@ function Salario() {
 
             <main className="max-w-6xl mx-auto p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
                 
-                {/* FORMULÁRIO */}
                 <section className="lg:col-span-1">
                     <div className="bg-brand-card p-6 rounded-2xl border border-neutral-800 shadow-lg">
                         <h2 className="text-sm font-bold mb-5 text-brand-blue uppercase tracking-widest">Nova Entrada</h2>
@@ -111,7 +117,6 @@ function Salario() {
                     </div>
                 </section>
 
-                {/* TABELA */}
                 <section className="lg:col-span-2">
                     <div className="bg-brand-card rounded-2xl border border-neutral-800 shadow-lg overflow-hidden">
                         <table className="w-full text-left text-sm">
@@ -148,4 +153,5 @@ function Salario() {
         </div>
     );
 }
+
 export default Salario;
