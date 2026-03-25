@@ -1,10 +1,10 @@
 import axios from 'axios';
 
 const api = axios.create({
-    baseURL: 'http://localhost:8080', // O endereço do seu Spring Boot
+    // Ele tenta ler a variável do arquivo .env, se não achar, usa o localhost como reserva
+    baseURL: process.env.REACT_APP_API_URL || 'http://localhost:8080', 
 });
 
-// Isso envia o Token de login automaticamente se ele existir
 api.interceptors.request.use((config) => {
     const token = localStorage.getItem('token');
     if (token) {
