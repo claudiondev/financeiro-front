@@ -1,9 +1,9 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import Login from './pages/Login/Login'; // <--- Confira se o 'L' é maiúsculo na pasta também!
-import Cadastro from './pages/Cadastro/Cadastro';
-import Salarios from './pages/Salarios/Salarios';
-import Gastos from './pages/Gastos/Gastos';
-import Resumo from './pages/Resumo/Resumo';
+import Login from './pages/Login/Login.jsx'; 
+import Cadastro from './pages/Cadastro/Cadastro.jsx';
+import Salarios from './pages/Salarios/Salarios.jsx';
+import Gastos from './pages/Gastos/Gastos.jsx';
+import Resumo from './pages/Resumo/Resumo.jsx';
 
 function App() {
   return (
