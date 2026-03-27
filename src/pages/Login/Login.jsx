@@ -12,7 +12,7 @@ function Login() {
   const handleSubmit = (e) => {
     e.preventDefault();
     setErro('');
-    axios.post('http://localhost:8080/auth/login', { email, senha })
+    axios.post('https://financeiro-production-e0e0.up.railway.app/auth/login', { email, senha })
       .then(response => {
         localStorage.setItem('token', response.data);
         navigate('/salarios');

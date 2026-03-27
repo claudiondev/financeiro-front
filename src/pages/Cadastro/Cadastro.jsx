@@ -20,7 +20,7 @@ function Cadastro() {
         return; 
       }
 
-      axios.post('http://localhost:8080/auth/registrar', { email, senha, usuario, repetirSenha })
+      axios.post('https://financeiro-production-e0e0.up.railway.app/auth/registrar', { email, senha, usuario, repetirSenha })
         .then(response => {
           navigate('/login');
         })
