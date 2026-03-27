@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-    // Ele tenta ler a variável do arquivo .env, se não achar, usa o localhost como reserva
+    // ADICIONE O HTTPS:// ANTES DO LINK
     baseURL: process.env.REACT_APP_API_URL || 'https://financeiro-production-e0e0.up.railway.app', 
 });
 
