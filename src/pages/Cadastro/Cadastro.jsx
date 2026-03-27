@@ -1,14 +1,14 @@
 import { useState } from "react";
-import axios from "axios";
+import api from '../../services/api'; // 1. Trocado o axios pela sua config de api
 import { Link, useNavigate } from "react-router-dom";
-import logo from '../../assets/logo.png'; // Importando seu logo
+import logo from '../../assets/logo.png'; 
 
 function Cadastro() {
     const [usuario, setUsuario] = useState("");
     const [email, setEmail] = useState("");
     const [senha, setSenha] = useState("");
     const [repetirSenha, setRepetirSenha] = useState("");
-    const [erro, setErro] = useState(""); // Adicionei estado de erro visual
+    const [erro, setErro] = useState(""); 
     const navigate = useNavigate();
 
     const handleSubmit = (e) => {
@@ -20,7 +20,8 @@ function Cadastro() {
         return; 
       }
 
-      axios.post('https://financeiro-production-e0e0.up.railway.app/auth/registrar', { email, senha, usuario, repetirSenha })
+      // 2. Agora usamos 'api.post' e apenas o final da rota '/auth/registrar'
+      api.post('/auth/registrar', { email, senha, usuario, repetirSenha })
         .then(response => {
           navigate('/login');
         })
@@ -30,10 +31,8 @@ function Cadastro() {
     };
 
   return (
-    // Fundo centralizado identico ao Login
     <div className="min-h-screen bg-brand-dark flex flex-col items-center justify-center p-4 font-sans text-brand-text-main">
       
-      {/* Logo e Título */}
       <div className="flex flex-col items-center mb-8 text-center text-brand-text-sub">
         <img src={logo} alt="Logo" className="w-56 h-auto mb-3" />
         <p className="text-sm font-light uppercase tracking-widest opacity-80">
@@ -41,7 +40,6 @@ function Cadastro() {
         </p>
       </div>
 
-      {/* Card de Cadastro (Mesmo tamanho do Login para padronizar) */}
       <div className="bg-brand-card p-8 rounded-3xl shadow-2xl w-full max-w-sm border border-neutral-800/60">
         <div className="mb-6 text-center">
           <h2 className="text-xl font-bold">Comece agora 🚀</h2>
@@ -50,7 +48,6 @@ function Cadastro() {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           
-          {/* Campo Nome/Usuário */}
           <div className="flex flex-col gap-1.5">
             <label className="text-xs font-medium text-brand-text-sub ml-1 uppercase tracking-wider">Nome</label>
             <input
@@ -63,7 +60,6 @@ function Cadastro() {
             />
           </div>
 
-          {/* Campo Email */}
           <div className="flex flex-col gap-1.5">
             <label className="text-xs font-medium text-brand-text-sub ml-1 uppercase tracking-wider">Email</label>
             <input
@@ -76,7 +72,6 @@ function Cadastro() {
             />
           </div>
 
-          {/* Campo Senha */}
           <div className="flex flex-col gap-1.5">
             <label className="text-xs font-medium text-brand-text-sub ml-1 uppercase tracking-wider">Senha</label>
             <input
@@ -89,7 +84,6 @@ function Cadastro() {
             />
           </div>
 
-          {/* Campo Repetir Senha */}
           <div className="flex flex-col gap-1.5">
             <label className="text-xs font-medium text-brand-text-sub ml-1 uppercase tracking-wider">Confirmar Senha</label>
             <input
@@ -102,14 +96,12 @@ function Cadastro() {
             />
           </div>
 
-          {/* Mensagem de Erro Visual */}
           {erro && (
             <p className="text-red-500 text-[11px] font-medium bg-red-500/10 p-2.5 rounded-lg border border-red-500/20 text-center">
               {erro}
             </p>
           )}
 
-          {/* Botão Cadastrar */}
           <button
             type="submit"
             className="w-full bg-brand-blue hover:bg-blue-600 text-white font-bold text-base rounded-xl p-3.5 transition-all mt-4 active:scale-[0.98] shadow-lg shadow-brand-blue/20"

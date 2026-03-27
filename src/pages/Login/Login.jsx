@@ -1,4 +1,4 @@
-import axios from 'axios';
+import api from '../../services/api'; // 1. Trocado o axios pela sua config de api
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import logo from '../../assets/logo.png';
@@ -12,13 +12,14 @@ function Login() {
   const handleSubmit = (e) => {
     e.preventDefault();
     setErro('');
-    axios.post('https://financeiro-production-e0e0.up.railway.app/auth/login', { email, senha })
+    
+    // 2. Agora usamos 'api.post' e apenas o final da rota '/auth/login'
+    api.post('/auth/login', { email, senha })
       .then(response => {
         localStorage.setItem('token', response.data);
         navigate('/salarios');
       })
       .catch(() => {
-        // Aqui a mensagem é disparada e aparece na tela
         setErro('Email ou senha incorretos. Tente novamente.');
       });
   };
@@ -64,7 +65,6 @@ function Login() {
             />
           </div>
 
-          {/* SÓ APARECE SE HOUVER ERRO */}
           {erro && (
             <p className="text-red-500 text-[11px] font-medium bg-red-500/10 p-2.5 rounded-lg border border-red-500/20 text-center">
               {erro}
