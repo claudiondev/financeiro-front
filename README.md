@@ -1,70 +1,94 @@
-# Getting Started with Create React App
+# 💰 Sistema de Controle Financeiro - Front-end
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+![React](https://img.shields.io/badge/REACT-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
+![Tailwind CSS](https://img.shields.io/badge/TAILWIND%20CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)
+![Axios](https://img.shields.io/badge/AXIOS-5A29E4?style=for-the-badge&logo=axios&logoColor=white)
+![Vercel](https://img.shields.io/badge/VERCEL-000000?style=for-the-badge&logo=vercel&logoColor=white)
+![Git](https://img.shields.io/badge/GIT-F05032?style=for-the-badge&logo=git&logoColor=white)
 
-## Available Scripts
+| Interface de usuário responsiva e intuitiva para o controle completo de gastos e salários, integrada à API backend. |
+| :--- |
 
-In the project directory, you can run:
+---
 
-### `npm start`
+## 📋 Sobre o Projeto
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+O **Sistema de Controle Financeiro (Front-end)** é uma aplicação web moderna desenvolvida com **React** e **Tailwind CSS**. Ela foi projetada para oferecer uma experiência de usuário fluida, permitindo a gestão completa de movimentações financeiras através de uma integração direta com a API REST de controle financeiro.
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+---
 
-### `npm test`
+## ✨ Funcionalidades
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+* ✅ Autenticação de usuários com persistência de token **JWT**.
+* ✅ Dashboard com resumo mensal automático (Saldo, Gastos e Salários).
+* ✅ Listagem dinâmica e em tempo real de todos os registros.
+* ✅ Cadastro simplificado de novos gastos e receitas.
+* ✅ Remoção de registros com atualização instantânea da interface.
+* ✅ Rotas protegidas e controle de acesso por estado de login.
 
-### `npm run build`
+---
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+## 🚀 Tecnologias Utilizadas
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+| Tecnologia | Descrição |
+| :--- | :--- |
+| **React 18** | Biblioteca principal para a construção da interface (SPA). |
+| **Tailwind CSS** | Framework utilitário para estilização responsiva e moderna. |
+| **Axios** | Cliente HTTP para consumo seguro dos endpoints da API. |
+| **React Router** | Gerenciamento de rotas e navegação entre páginas. |
+| **NPM** | Gerenciador de pacotes e dependências do projeto. |
+| **Vercel** | Hospedagem de alta performance com CI/CD automatizado. |
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+---
 
-### `npm run eject`
+## 📂 Estrutura de Pastas
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+```text
+src
+├── assets       # Imagens, ícones e recursos estáticos
+├── components   # Componentes de UI (Botões, Inputs, Cards)
+├── contexts     # Gerenciamento de estado global (Auth Context)
+├── pages        # Páginas principais (Login, Dashboard, Gastos)
+├── services     # Configuração do Axios e chamadas para o Backend
+└── utils        # Funções de formatação (Moeda, Datas)
+📦 Como Rodar o Projeto
+Pré-requisitos
+Node.js (v18 ou superior)
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+NPM ou Yarn
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+Passos para Execução
+Clone o repositório:
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+Bash
+git clone [https://github.com/claudiondev/financeiro-front](https://github.com/claudiondev/financeiro-front)
+Entre no diretório:
 
-## Learn More
+Bash
+cd financeiro-front
+Instale as dependências:
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+Bash
+npm install
+Configure o Ambiente:
+Crie um arquivo .env na raiz do projeto e aponte para o seu Backend local:
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+Snippet de código
+REACT_APP_API_URL=http://localhost:8080
+Inicie a aplicação:
 
-### Code Splitting
+Bash
+npm start
+O sistema estará disponível no seu navegador em http://localhost:3000.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+🛡️ Segurança e Deploy
+A aplicação segue rigorosos padrões de segurança para desenvolvimento Front-end:
 
-### Analyzing the Bundle Size
+Variáveis de Ambiente: URLs sensíveis são gerenciadas via .env, nunca expostas no repositório.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+CI/CD: Deploy automatizado via Vercel a cada atualização no branch principal.
 
-### Making a Progressive Web App
+Middlewares: Proteção de rotas para garantir que dados sensíveis só sejam acessados após o login.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+👨‍💻 Autor
+Feito por **Claudio Nascimento**
