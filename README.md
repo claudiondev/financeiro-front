@@ -90,5 +90,18 @@ CI/CD: Deploy automatizado via Vercel a cada atualização no branch principal.
 
 Middlewares: Proteção de rotas para garantir que dados sensíveis só sejam acessados após o login.
 
+---
+
+## 🚀 Próximos Passos (Roadmap)
+
+O projeto está em constante evolução. As próximas implementações planejadas são:
+
+- [ ] **Recuperação de Senha:** Integração com o endpoint de e-mail já disponível no Backend.
+- [ ] **Gráficos Dinâmicos:** Visualização de gastos por categoria para melhor análise financeira.
+- [ ] **Filtros Avançados:** Busca de transações por período e tipo.
+- [ ] **Exportação de Dados:** Gerar relatórios em PDF ou Excel.
+
+---
+
 👨‍💻 Autor
 Feito por **Claudio Nascimento**
