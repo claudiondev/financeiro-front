@@ -1,124 +1,138 @@
-import { useState, useEffect } from "react";
-import api from "../../services/api"; // 1. Usando a nossa API configurada
-import { useNavigate } from 'react-router-dom';
-import logo from '../../assets/logo.png'; 
+import { useState, useEffect } from 'react'
+import { PieChart, Pie, Cell, Legend, ResponsiveContainer } from 'recharts'
+import api from '../../services/api'
 
-function Resumo() {
-    const [resumo, setResumo] = useState(null);
-    const navigate = useNavigate();
-    
-    // FUNÇÃO DE SAIR (LOGOUT)
-    const handleLogout = () => {
-        localStorage.removeItem('token'); 
-        navigate('/login'); 
-    };
+export default function Resumo() {
+  const [resumo, setResumo] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
 
-    // 2. BUSCAR RESUMO (Limpo e sem Headers repetidos)
-    const buscarResumo = async () => {
-        try {
-            const response = await api.get("/gastos/resumo");
-            setResumo(response.data);
-        } catch (error) {
-            console.error('Erro ao buscar resumo:', error);
-            // Se o token estiver inválido (403), volta para o login
-            if (error.response && error.response.status === 403) {
-                navigate('/login');
-            }
-        }
-    };
+  useEffect(() => {
+    const fetchResumo = async () => {
+      try {
+        const response = await api.get('/gastos/resumo')
+        setResumo(response.data)
+      } catch (err) {
+        setError('Erro ao carregar dados')
+      } finally {
+        setLoading(false)
+      }
+    }
 
-    useEffect(() => {
-        const token = localStorage.getItem('token');
-        if (!token || token === "null") {
-            navigate('/login');
-        } else {
-            buscarResumo();
-        }
-    }, []);
+    fetchResumo()
+  }, [])
 
-    if (!resumo) return (
-        <div className="min-h-screen bg-brand-dark flex items-center justify-center">
-            <p className="text-brand-blue font-bold animate-pulse uppercase tracking-widest text-xs">Carregando Dados do Studio...</p>
-        </div>
-    );
-
+  if (loading) {
     return (
-        <div className="min-h-screen bg-brand-dark text-brand-text-main font-sans">
-            
-            {/* HEADER - Visual mantido 100% */}
-            <header className="bg-brand-card border-b border-neutral-800 p-4 shadow-md">
-                <div className="max-w-6xl mx-auto flex justify-between items-center">
-                    <div className="flex items-center gap-4">
-                        <img src={logo} alt="Logo" className="w-24 h-auto" />
-                        <div className="h-6 w-[1px] bg-neutral-700 hidden sm:block"></div>
-                        <span className="text-lg font-bold tracking-tight text-brand-text-main hidden sm:block uppercase text-[10px] tracking-[0.3em]">Resumo</span>
-                    </div>
-                    <nav className="flex gap-5 items-center">
-                        <button onClick={() => navigate('/salarios')} className="text-[10px] text-brand-blue hover:brightness-125 font-black transition-all uppercase tracking-wider">Salário</button>
-                        <button onClick={() => navigate('/gastos')} className="text-[10px] text-brand-blue hover:brightness-125 font-black transition-all uppercase tracking-wider">Gastos</button>
-                        
-                        <button 
-                            onClick={handleLogout} 
-                            className="ml-4 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white px-3 py-1.5 rounded-lg border border-red-500/20 transition-all text-[9px] font-black uppercase tracking-[0.2em]"
-                        >
-                            Sair
-                        </button>
-                    </nav>
-                </div>
-            </header>
+      <div className="flex items-center justify-center h-96">
+        <p className="text-text-secondary">Carregando...</p>
+      </div>
+    )
+  }
 
-            <main className="max-w-4xl mx-auto p-6 space-y-6">
-                
-                {/* CARD DE SALDO PRINCIPAL */}
-                <section className="bg-brand-card p-10 rounded-3xl border border-neutral-800 shadow-2xl text-center relative overflow-hidden">
-                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-brand-blue to-transparent opacity-30"></div>
-                    <h2 className="text-[10px] font-black text-brand-text-sub uppercase tracking-[0.3em] mb-3">Saldo Disponível no Studio</h2>
-                    <p className={`text-6xl font-black mb-5 tracking-tighter ${resumo.saldo >= 0 ? 'text-green-400' : 'text-red-500'}`}>
-                        R$ {Number(resumo.saldo).toFixed(2)}
-                    </p>
-                    <div className="inline-block px-5 py-2 bg-neutral-900/80 rounded-full border border-neutral-800 backdrop-blur-sm">
-                        <span className="text-[11px] font-bold text-brand-text-sub italic">
-                            "{resumo.mensagem}"
-                        </span>
-                    </div>
-                </section>
+  if (error) {
+    return (
+      <div className="card-base border-negative border-opacity-30 p-6 text-negative">
+        {error}
+      </div>
+    )
+  }
 
-                {/* GRID DE ENTRADAS E SAÍDAS */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="bg-brand-card p-6 rounded-2xl border border-neutral-800 shadow-lg flex items-center justify-between group hover:border-green-400/30 transition-all">
-                        <div>
-                            <p className="text-[9px] font-black text-brand-text-sub uppercase mb-1 tracking-widest">Total Entradas</p>
-                            <p className="text-2xl font-bold text-green-400">R$ {Number(resumo.totalSalario).toFixed(2)}</p>
-                        </div>
-                        <div className="h-10 w-10 bg-green-400/10 rounded-full flex items-center justify-center border border-green-400/20">
-                            <span className="text-green-400 text-lg">↑</span>
-                        </div>
-                    </div>
+  if (!resumo) return null
 
-                    <div className="bg-brand-card p-6 rounded-2xl border border-neutral-800 shadow-lg flex items-center justify-between group hover:border-red-500/30 transition-all">
-                        <div>
-                            <p className="text-[9px] font-black text-brand-text-sub uppercase mb-1 tracking-widest">Total Saídas</p>
-                            <p className="text-2xl font-bold text-red-500">R$ {Number(resumo.totalGasto).toFixed(2)}</p>
-                        </div>
-                        <div className="h-10 w-10 bg-red-500/10 rounded-full flex items-center justify-center border border-red-500/20">
-                            <span className="text-red-500 text-lg">↓</span>
-                        </div>
-                    </div>
-                </div>
+  const saldoValor = Number(resumo.saldo || 0)
+  const entradaValor = Number(resumo.totalSalario || 0)
+  const saidaValor = Number(resumo.totalGasto || 0)
 
-                {/* BOTÕES DE NAVEGAÇÃO RÁPIDA */}
-                <div className="flex flex-col sm:flex-row gap-4 pt-4">
-                    <button onClick={() => navigate('/gastos')} className="flex-1 bg-neutral-900 hover:bg-red-500/10 hover:border-red-500/50 text-brand-text-main font-black py-4 rounded-xl border border-neutral-800 transition-all text-[10px] uppercase tracking-[0.2em]">
-                        + Registrar Gasto
-                    </button>
-                    <button onClick={() => navigate('/salarios')} className="flex-1 bg-neutral-900 hover:bg-green-400/10 hover:border-green-400/50 text-brand-text-main font-black py-4 rounded-xl border border-neutral-800 transition-all text-[10px] uppercase tracking-[0.2em]">
-                        + Lançar Salário
-                    </button>
-                </div>
+  const chartData = resumo.categorias ? Object.entries(resumo.categorias).map(([name, value]) => ({
+    name,
+    value: Number(value)
+  })) : []
 
-            </main>
+  const COLORS = ['#C084FC', '#F87171', '#10B981', '#3B82F6', '#F59E0B', '#8B5CF6', '#EC4899', '#06B6D4']
+
+  return (
+    <div className="space-y-6">
+      <h1 className="text-3xl font-bold text-text-primary">Resumo Financeiro</h1>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="card-base p-6 space-y-2">
+          <p className="label-uppercase text-text-secondary">Saldo Disponível</p>
+          <p className={`text-3xl font-bold ${saldoValor >= 0 ? 'text-positive' : 'text-negative'}`}>
+            R$ {saldoValor.toFixed(2)}
+          </p>
         </div>
-    );
-}
 
-export default Resumo;
+        <div className="card-base p-6 space-y-2">
+          <p className="label-uppercase text-text-secondary">Total Entradas</p>
+          <p className="text-3xl font-bold text-positive">R$ {entradaValor.toFixed(2)}</p>
+        </div>
+
+        <div className="card-base p-6 space-y-2">
+          <p className="label-uppercase text-text-secondary">Total Saídas</p>
+          <p className="text-3xl font-bold text-negative">R$ {saidaValor.toFixed(2)}</p>
+        </div>
+
+        <div className="card-base p-6 space-y-2">
+          <p className="label-uppercase text-text-secondary">Maior Gasto</p>
+          <p className="text-3xl font-bold text-accent">
+            R$ {Number(resumo.maiorGasto || 0).toFixed(2)}
+          </p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="card-base p-6 lg:col-span-1">
+          <h2 className="label-uppercase text-text-secondary mb-4">Gastos por Categoria</h2>
+          {chartData.length > 0 ? (
+            <ResponsiveContainer width="100%" height={300}>
+              <PieChart>
+                <Pie
+                  data={chartData}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={({ name, value }) => `${name}: ${value}`}
+                  outerRadius={100}
+                  fill="#8884d8"
+                  dataKey="value"
+                >
+                  {chartData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Legend />
+              </PieChart>
+            </ResponsiveContainer>
+          ) : (
+            <p className="text-text-secondary text-center py-8">Nenhum gasto registrado</p>
+          )}
+        </div>
+
+        <div className="card-base p-6 lg:col-span-2">
+          <h2 className="label-uppercase text-text-secondary mb-4">Transações Recentes</h2>
+          <div className="space-y-3 max-h-96 overflow-y-auto">
+            {resumo.transacoes && resumo.transacoes.length > 0 ? (
+              resumo.transacoes.map((tx) => (
+                <div key={tx.id} className="flex items-center justify-between p-3 border border-border-dark rounded">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="badge-category">{tx.categoria}</span>
+                    </div>
+                    <p className="text-text-secondary text-xs">{tx.descricao}</p>
+                    <p className="text-text-secondary text-xs">{tx.data}</p>
+                  </div>
+                  <p className={`font-bold ${tx.tipo === 'entrada' ? 'text-positive' : 'text-negative'}`}>
+                    {tx.tipo === 'entrada' ? '+' : '-'} R$ {Math.abs(Number(tx.valor)).toFixed(2)}
+                  </p>
+                </div>
+              ))
+            ) : (
+              <p className="text-text-secondary text-center py-4">Nenhuma transação registrada</p>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}

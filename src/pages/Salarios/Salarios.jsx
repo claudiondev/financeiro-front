@@ -1,157 +1,232 @@
-import { useState, useEffect } from "react";
-import api from "../../services/api"; // Usando sua configuração centralizada
-import { useNavigate } from 'react-router-dom';
-import logo from '../../assets/logo.png'; 
+import { useState, useEffect } from 'react'
+import { Trash2, Plus } from 'lucide-react'
+import Modal from '../../components/Modal'
+import api from '../../services/api'
 
-function Salario() {
-    const [valor, setValor] = useState("");
-    const [comissao, setComissao] = useState("");
-    const [adicional, setAdicional] = useState("");
-    const [descricao, setDescricao] = useState("");
-    const [data, setData] = useState("");
-    const [listaSalarios, setListaSalarios] = useState([]); 
-    const navigate = useNavigate();
+export default function Salarios() {
+  const [salarios, setSalarios] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [formData, setFormData] = useState({
+    valor: '',
+    comissao: '',
+    adicional: '',
+    descricao: '',
+    data: ''
+  })
 
-    // 1. BUSCAR SALÁRIOS
-    const buscarSalarios = async () => {
-        try {
-            const response = await api.get('/salario');
-            setListaSalarios(response.data);
-        } catch (error) {
-            console.error('Erro ao buscar:', error);
-            // Se o token falhar, volta para o login
-            if (error.response && (error.response.status === 403 || error.response.status === 401)) {
-                navigate('/login');
-            }
-        }
-    };
+  useEffect(() => {
+    fetchSalarios()
+  }, [])
 
-    useEffect(() => { 
-        const token = localStorage.getItem('token');
-        if (!token || token === "null") {
-            navigate('/login');
-        } else {
-            buscarSalarios(); 
-        }
-    }, []);
+  const fetchSalarios = async () => {
+    try {
+      const response = await api.get('/salarios')
+      setSalarios(response.data)
+      setError('')
+    } catch (err) {
+      setError('Erro ao carregar salários')
+    } finally {
+      setLoading(false)
+    }
+  }
 
-    // 2. SALVAR SALÁRIO
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        try {
-            await api.post('/salario', {
-                valor, comissao, adicional, descricao, data
-            });
-            buscarSalarios();
-            setValor(""); setComissao(""); setAdicional(""); setDescricao(""); setData("");
-        } catch (error) {
-            console.error('Erro ao adicionar:', error);
-        }
-    };
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    try {
+      await api.post('/salarios', formData)
+      setFormData({ valor: '', comissao: '', adicional: '', descricao: '', data: '' })
+      setIsModalOpen(false)
+      await fetchSalarios()
+    } catch (err) {
+      setError('Erro ao salvar entrada')
+    }
+  }
 
-    // 3. DELETAR SALÁRIO
-    const deletarSalario = async (id) => {
-        if (!window.confirm("Tem certeza que deseja apagar este salário?")) return;
+  const handleDelete = async (id) => {
+    if (!window.confirm('Deseja deletar esta entrada?')) return
+    try {
+      await api.delete(`/salarios/${id}`)
+      await fetchSalarios()
+    } catch (err) {
+      setError('Erro ao deletar entrada')
+    }
+  }
 
-        try {
-            await api.delete(`/salario/${id}`);
-            buscarSalarios();
-        } catch (error) {
-            console.error('Erro ao deletar:', error);
-        }
-    };
-
+  if (loading) {
     return (
-        <div className="min-h-screen bg-brand-dark text-brand-text-main font-sans">
-            
-            <header className="bg-brand-card border-b border-neutral-800 p-4 shadow-md">
-                <div className="max-w-6xl mx-auto flex justify-between items-center">
-                    <div className="flex items-center gap-4">
-                        <img src={logo} alt="Logo" className="w-24 h-auto" />
-                        <div className="h-6 w-[1px] bg-neutral-700 hidden sm:block"></div>
-                        <span className="text-lg font-bold tracking-tight text-brand-text-main hidden sm:block">Salário</span>
-                    </div>
-                    <nav className="flex gap-5">
-                        <button onClick={() => navigate('/gastos')} className="text-sm text-brand-blue hover:brightness-125 font-bold transition-all uppercase tracking-wider">Gastos</button>
-                        <button onClick={() => navigate('/resumo')} className="text-sm text-brand-blue hover:brightness-125 font-bold transition-all uppercase tracking-wider">Resumo</button>
-                    </nav>
-                </div>
-            </header>
+      <div className="flex items-center justify-center h-96">
+        <p className="text-text-secondary">Carregando...</p>
+      </div>
+    )
+  }
 
-            <main className="max-w-6xl mx-auto p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
-                
-                <section className="lg:col-span-1">
-                    <div className="bg-brand-card p-6 rounded-2xl border border-neutral-800 shadow-lg">
-                        <h2 className="text-sm font-bold mb-5 text-brand-blue uppercase tracking-widest">Nova Entrada</h2>
-                        <form onSubmit={handleSubmit} className="space-y-4">
-                            <div>
-                                <label className="text-[10px] font-bold text-brand-text-sub uppercase mb-1 block">Valor Principal</label>
-                                <input type="number" value={valor} onChange={(e) => setValor(e.target.value)} className="w-full bg-neutral-900 border border-neutral-700 rounded-xl p-2.5 text-sm focus:border-brand-blue outline-none transition-all" placeholder="0,00" required />
-                            </div>
-                            
-                            <div className="grid grid-cols-2 gap-3">
-                                <div>
-                                    <label className="text-[10px] font-bold text-brand-text-sub uppercase mb-1 block">Comissão</label>
-                                    <input type="number" value={comissao} onChange={(e) => setComissao(e.target.value)} className="w-full bg-neutral-900 border border-neutral-700 rounded-xl p-2.5 text-sm focus:border-brand-blue outline-none" placeholder="0,00" />
-                                </div>
-                                <div>
-                                    <label className="text-[10px] font-bold text-brand-text-sub uppercase mb-1 block">Adicional</label>
-                                    <input type="number" value={adicional} onChange={(e) => setAdicional(e.target.value)} className="w-full bg-neutral-900 border border-neutral-700 rounded-xl p-2.5 text-sm focus:border-brand-blue outline-none" placeholder="0,00" />
-                                </div>
-                            </div>
+  const totalMes = salarios.reduce((acc, sal) => {
+    return acc + (Number(sal.valor || 0) + Number(sal.comissao || 0) + Number(sal.adicional || 0))
+  }, 0)
 
-                            <div>
-                                <label className="text-[10px] font-bold text-brand-text-sub uppercase mb-1 block">Descrição</label>
-                                <input type="text" value={descricao} onChange={(e) => setDescricao(e.target.value)} className="w-full bg-neutral-900 border border-neutral-700 rounded-xl p-2.5 text-sm focus:border-brand-blue outline-none" placeholder="Ex: Salário Semanal" />
-                            </div>
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h1 className="text-3xl font-bold text-text-primary">Salários e Entradas</h1>
+        <button
+          onClick={() => setIsModalOpen(true)}
+          className="btn-outlined-lg inline-flex items-center gap-2"
+        >
+          <Plus size={18} />
+          Nova Entrada
+        </button>
+      </div>
 
-                            <div>
-                                <label className="text-[10px] font-bold text-brand-text-sub uppercase mb-1 block">Data</label>
-                                <input type="date" value={data} onChange={(e) => setData(e.target.value)} className="w-full bg-neutral-900 border border-neutral-700 rounded-xl p-2.5 text-sm focus:border-brand-blue outline-none" style={{colorScheme: 'dark'}} required />
-                            </div>
+      <div className="card-base p-6">
+        <p className="label-uppercase text-text-secondary mb-2">Total Recebido no Mês</p>
+        <p className="text-4xl font-bold text-positive">R$ {totalMes.toFixed(2)}</p>
+      </div>
 
-                            <button type="submit" className="w-full bg-brand-blue hover:bg-blue-600 text-white font-bold py-3 rounded-xl mt-2 transition-all shadow-md uppercase text-xs tracking-widest">
-                                Salvar
-                            </button>
-                        </form>
-                    </div>
-                </section>
-
-                <section className="lg:col-span-2">
-                    <div className="bg-brand-card rounded-2xl border border-neutral-800 shadow-lg overflow-hidden">
-                        <table className="w-full text-left text-sm">
-                            <thead className="bg-neutral-900/50 text-brand-text-main text-[11px] uppercase font-bold">
-                                <tr>
-                                    <th className="px-5 py-3">Data</th>
-                                    <th className="px-5 py-3">Descrição</th>
-                                    <th className="px-5 py-3">Total (R$)</th>
-                                    <th className="px-5 py-3 text-center">Ações</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-neutral-800">
-                                {listaSalarios.map((s) => (
-                                    <tr key={s.id} className="hover:bg-neutral-800/30 transition-colors">
-                                        <td className="px-5 py-3 text-brand-text-sub text-xs">{s.data}</td>
-                                        <td className="px-5 py-3 font-medium">{s.descricao || 'Entrada'}</td>
-                                        <td className="px-5 py-3">
-                                            <span className="text-green-400 font-bold">
-                                                {(Number(s.valor || 0) + Number(s.comissao || 0) + Number(s.adicional || 0)).toFixed(2)}
-                                            </span>
-                                        </td>
-                                        <td className="px-5 py-3 text-center">
-                                            <button onClick={() => deletarSalario(s.id)} className="text-red-500 hover:text-red-400 px-2 py-1 rounded transition-all text-xs font-bold uppercase tracking-tighter">
-                                                Apagar
-                                            </button>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                </section>
-            </main>
+      {error && (
+        <div className="card-base border-negative border-opacity-30 p-4 text-negative text-sm">
+          {error}
         </div>
-    );
-}
+      )}
 
-export default Salario;
+      <div className="card-base overflow-hidden">
+        <table className="w-full">
+          <thead>
+            <tr className="border-b border-border-dark bg-surface">
+              <th className="label-uppercase text-text-secondary text-left px-6 py-4">Data</th>
+              <th className="label-uppercase text-text-secondary text-left px-6 py-4">Descrição</th>
+              <th className="label-uppercase text-text-secondary text-right px-6 py-4">Valor Principal</th>
+              <th className="label-uppercase text-text-secondary text-right px-6 py-4">Comissão</th>
+              <th className="label-uppercase text-text-secondary text-right px-6 py-4">Adicional</th>
+              <th className="label-uppercase text-text-secondary text-right px-6 py-4">Total</th>
+              <th className="label-uppercase text-text-secondary text-center px-6 py-4">Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            {salarios.length > 0 ? (
+              salarios.map((salario) => {
+                const total = Number(salario.valor || 0) + Number(salario.comissao || 0) + Number(salario.adicional || 0)
+                return (
+                  <tr key={salario.id} className="border-b border-border-dark hover:bg-surface hover:bg-opacity-50">
+                    <td className="px-6 py-4 text-text-secondary text-sm">{salario.data}</td>
+                    <td className="px-6 py-4">
+                      <p className="text-text-primary text-sm font-medium">{salario.descricao || '-'}</p>
+                    </td>
+                    <td className="px-6 py-4 text-right text-text-primary font-medium">
+                      R$ {Number(salario.valor || 0).toFixed(2)}
+                    </td>
+                    <td className="px-6 py-4 text-right text-text-primary font-medium">
+                      R$ {Number(salario.comissao || 0).toFixed(2)}
+                    </td>
+                    <td className="px-6 py-4 text-right text-text-primary font-medium">
+                      R$ {Number(salario.adicional || 0).toFixed(2)}
+                    </td>
+                    <td className="px-6 py-4 text-right font-bold text-positive">
+                      R$ {total.toFixed(2)}
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      <button
+                        onClick={() => handleDelete(salario.id)}
+                        className="text-negative hover:text-negative hover:bg-negative hover:bg-opacity-10 p-2 rounded transition-colors"
+                        title="Deletar"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </td>
+                  </tr>
+                )
+              })
+            ) : (
+              <tr>
+                <td colSpan="7" className="px-6 py-8 text-center text-text-secondary">
+                  Nenhuma entrada registrada
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      <Modal isOpen={isModalOpen} title="Nova Entrada" onClose={() => setIsModalOpen(false)}>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="label-uppercase text-text-secondary block mb-2 text-xs">Valor Principal</label>
+            <input
+              type="number"
+              step="0.01"
+              placeholder="0,00"
+              value={formData.valor}
+              onChange={(e) => setFormData({ ...formData, valor: e.target.value })}
+              className="input-dark w-full px-4 py-3"
+              required
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="label-uppercase text-text-secondary block mb-2 text-xs">Comissão</label>
+              <input
+                type="number"
+                step="0.01"
+                placeholder="0,00"
+                value={formData.comissao}
+                onChange={(e) => setFormData({ ...formData, comissao: e.target.value })}
+                className="input-dark w-full px-4 py-3"
+              />
+            </div>
+            <div>
+              <label className="label-uppercase text-text-secondary block mb-2 text-xs">Adicional</label>
+              <input
+                type="number"
+                step="0.01"
+                placeholder="0,00"
+                value={formData.adicional}
+                onChange={(e) => setFormData({ ...formData, adicional: e.target.value })}
+                className="input-dark w-full px-4 py-3"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="label-uppercase text-text-secondary block mb-2 text-xs">Descrição</label>
+            <textarea
+              placeholder="Ex: Salário Mensal"
+              value={formData.descricao}
+              onChange={(e) => setFormData({ ...formData, descricao: e.target.value })}
+              className="input-dark w-full px-4 py-3 resize-none"
+              rows="3"
+            />
+          </div>
+
+          <div>
+            <label className="label-uppercase text-text-secondary block mb-2 text-xs">Data</label>
+            <input
+              type="date"
+              value={formData.data}
+              onChange={(e) => setFormData({ ...formData, data: e.target.value })}
+              className="input-dark w-full px-4 py-3"
+              required
+            />
+          </div>
+
+          <div className="flex gap-3 pt-4">
+            <button
+              type="button"
+              onClick={() => setIsModalOpen(false)}
+              className="flex-1 border border-border-dark text-text-secondary px-4 py-2 rounded hover:bg-surface"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              className="btn-outlined-lg flex-1"
+            >
+              Salvar
+            </button>
+          </div>
+        </form>
+      </Modal>
+    </div>
+  )
+}
