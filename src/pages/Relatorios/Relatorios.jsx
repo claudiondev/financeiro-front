@@ -9,6 +9,22 @@ export default function Relatorios() {
   const [error, setError] = useState('')
   const [mesSelected, setMesSelected] = useState(new Date().getMonth() + 1)
 
+  // ✅ ALTERAÇÃO 1: Array de meses com nome e número separados
+  const meses = [
+    { nome: 'Janeiro', numero: 1 },
+    { nome: 'Fevereiro', numero: 2 },
+    { nome: 'Março', numero: 3 },
+    { nome: 'Abril', numero: 4 },
+    { nome: 'Maio', numero: 5 },
+    { nome: 'Junho', numero: 6 },
+    { nome: 'Julho', numero: 7 },
+    { nome: 'Agosto', numero: 8 },
+    { nome: 'Setembro', numero: 9 },
+    { nome: 'Outubro', numero: 10 },
+    { nome: 'Novembro', numero: 11 },
+    { nome: 'Dezembro', numero: 12 },
+  ]
+
   useEffect(() => {
     fetchRelatorio()
   }, [mesSelected])
@@ -80,14 +96,18 @@ export default function Relatorios() {
         <div className="flex gap-4 items-end">
           <div>
             <label className="label-uppercase text-text-secondary block mb-2 text-xs">Selecionar Mês</label>
-            <input
-              type="number"
-              min="1"
-              max="12"
+            {/* ✅ ALTERAÇÃO 2: select no lugar de input number */}
+            <select
               value={mesSelected}
               onChange={(e) => setMesSelected(Number(e.target.value))}
-              className="input-dark px-4 py-3 w-24"
-            />
+              className="input-dark px-4 py-3"
+            >
+              {meses.map(mes => (
+                <option key={mes.numero} value={mes.numero}>
+                  {mes.nome}
+                </option>
+              ))}
+            </select>
           </div>
           <button
             onClick={handleExportCSV}

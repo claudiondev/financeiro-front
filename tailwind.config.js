@@ -7,15 +7,20 @@ export default {
   theme: {
     extend: {
       colors: {
-        dark: '#0D0D0D',
-        surface: '#161616',
-        'border-dark': '#262626',
-        accent: '#C084FC',
-        'text-primary': '#F5F5F5',
-        'text-secondary': '#737373',
-        positive: '#C084FC',
-        negative: '#F87171',
-        'badge-bg': '#1C1C1C',
+        dark: '#111827',
+        surface: '#1F2937',
+        'border-dark': '#374151',
+        accent: '#10B981',
+        'text-primary': '#F9FAFB',
+        'text-secondary': '#6B7280',
+        positive: '#10B981',
+        negative: '#EF4444',
+        'badge-blue': '#3B82F6',
+        'badge-orange': '#F97316',
+        'badge-purple': '#A855F7',
+        'badge-pink': '#EC4899',
+        'badge-green': '#10B981',
+        'badge-cyan': '#06B6D4',
       },
       fontFamily: {
         inter: ['Inter', 'sans-serif'],
@@ -31,4 +36,5 @@ export default {
   },
   plugins: [],
 }
+
 
