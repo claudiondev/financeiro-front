@@ -1,57 +1,67 @@
-# 💰 Sistema de Controle Financeiro - Front-end (React)
+# 💰 Meu Controle Financeiro — Front-end
 
 ![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)
-![Vercel](https://img.shields.io/badge/Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white)
 ![Vite](https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white)
+![Vercel](https://img.shields.io/badge/Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white)
 
-> Interface moderna e responsiva para controle financeiro pessoal, conectada a uma API Spring Boot e hospedada na Vercel.
+> Interface moderna e responsiva para controle financeiro pessoal, conectada a uma API REST Spring Boot com autenticação JWT.
 
 ---
 
-## 🚀 Acesse o Projeto Online
-👉 **Link da Vercel:** [https://financeiro-front-4rbsp28eb-claudio-nascimento.vercel.app/](https://financeiro-front-4rbsp28eb-claudio-nascimento.vercel.app/)
+## 🔗 Links
+
+- **Front-end (Vercel):** [meu-financeiro-pessoal.vercel.app](https://meu-financeiro-pessoal.vercel.app)
+- **Back-end (Repositório):** [github.com/claudiondev/financeiro](https://github.com/claudiondev/financeiro)
+- **Documentação da API (Swagger):** disponível ao rodar o backend localmente em `/swagger-ui.html`
 
 ---
 
 ## 📋 Sobre o Projeto
 
-Este é o front-end do **Sistema de Controle Financeiro**. A aplicação foi construída focando em **User Experience (UX)**, permitindo que o usuário gerencie seus gastos e salários de forma simples, rápida e com um visual limpo e moderno.
+Front-end do Sistema de Controle Financeiro — uma aplicação Full Stack desenvolvida para gerenciamento de gastos e salários pessoais.
+
+A interface consome uma API REST Spring Boot com autenticação JWT, exibindo dados financeiros em tempo real através de gráficos interativos e tabelas com filtros dinâmicos.
 
 ---
 
-## ✨ Funcionalidades Principais
+## ✨ Funcionalidades
 
-- 🔐 **Login e Cadastro:** Integração com JWT para acesso seguro ao backend.
-- 💸 **Dashboard Financeiro:** Visualização clara de saldos, entradas e saídas.
-- 📱 **Totalmente Responsivo:** Design que se adapta a celulares, tablets e computadores.
-- 🔄 **Consumo de API:** Comunicação em tempo real com o backend hospedado no Railway.
-- 🎨 **Estilização com Tailwind:** Interface rápida, leve e com design contemporâneo.
+- 🔐 Autenticação JWT com auto-logout em token expirado
+- 📊 Dashboard com resumo financeiro mensal
+- 💸 CRUD completo de gastos com filtros por mês e categoria
+- 💼 CRUD completo de salários com breakdown de comissões e adicionais
+- 🥧 Gráficos interativos com Recharts (PieChart e BarChart)
+- 📁 Exportação de relatórios em CSV
+- 📱 Layout responsivo — sidebar fixa no desktop
 
 ---
 
-## 🚀 Tecnologias Utilizadas
+## 🛠 Tecnologias
 
-| Tecnologia | Descrição |
+| Tecnologia | Uso |
 |---|---|
-| React | Biblioteca principal para a construção da interface |
-| Tailwind CSS | Framework de estilização utilitário para design moderno |
-| Axios | Cliente HTTP para integração com a API Spring Boot |
-| Lucide React | Biblioteca de ícones modernos e minimalistas |
-| Vite | Ferramenta de build para um desenvolvimento ágil |
-| Vercel | Plataforma oficial de hospedagem do Front-end |
+| React 18 | Biblioteca principal |
+| Vite | Build tool |
+| Tailwind CSS | Estilização |
+| Axios | Requisições HTTP + interceptor JWT |
+| Recharts | Gráficos interativos |
+| Lucide React | Ícones |
+| React Router DOM | Navegação |
 
 ---
 
-## 📦 Como Rodar Localmente
+## 🚀 Como Rodar Localmente
 
 ### Pré-requisitos
-- Node.js instalado
+- Node.js 18+
+- Backend rodando em `localhost:8080` — [ver instruções](https://github.com/claudiondev/financeiro)
 
 ### Passos
+
 ```bash
 # Clone o repositório
-git clone [https://github.com/claudiondev/financeiro-front](https://github.com/claudiondev/financeiro-front)
+git clone https://github.com/claudiondev/financeiro-front
 
 # Entre na pasta
 cd financeiro-front
@@ -59,8 +69,34 @@ cd financeiro-front
 # Instale as dependências
 npm install
 
+# Configure a variável de ambiente
+cp .env.example .env
+# Edite o .env com a URL do backend
+
 # Inicie o servidor de desenvolvimento
 npm run dev
+```
 
+Acesse `http://localhost:3000`
+
+---
+
+## 🏗 Arquitetura
+src/
+├── components/     # Componentes reutilizáveis (Sidebar, Layout, Modal)
+├── pages/          # Páginas da aplicação
+│   ├── Login/
+│   ├── Resumo/
+│   ├── Gastos/
+│   ├── Salarios/
+│   └── Relatorios/
+└── services/       # Configuração do Axios com interceptor JWT
+
+---
+
+## 👤 Autor
+
+**Claudio Nascimento**
+🔗 [github.com/claudiondev](https://github.com/claudiondev)
 👨‍💻 Autor
 Feito por Claudio Nascimento (O Nascimento Web Developer)
