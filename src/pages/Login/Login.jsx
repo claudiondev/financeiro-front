@@ -19,7 +19,17 @@ export default function Login() {
       localStorage.setItem('token', response.data)
       navigate('/resumo')
     } catch (error) {
-      setErro(error.response?.data?.message || 'Email ou senha incorretos')
+      /*
+       * O backend retorna strings simples (não objetos com campo "message").
+       * Exemplo: "Credenciais inválidas" com status 401.
+       *
+       * error.response.data já é a string de erro — usamos diretamente.
+       * O fallback garante uma mensagem amigável se a resposta vier vazia.
+       */
+      const mensagemBackend = error.response?.data
+      setErro(typeof mensagemBackend === 'string' && mensagemBackend
+        ? mensagemBackend
+        : 'Não foi possível fazer login. Verifique suas credenciais.')
     } finally {
       setLoading(false)
     }

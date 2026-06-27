@@ -16,13 +16,31 @@ export default function Salarios() {
     data: ''
   })
 
+  /*
+   * Estado para confirmação de exclusão sem window.confirm().
+   *
+   * Motivo: window.confirm() é um diálogo nativo do browser que não pode
+   * ser estilizado e é bloqueado em alguns contextos (iframes, PWA).
+   * Armazenamos o ID do registro a deletar — quando não nulo, o Modal de
+   * confirmação aparece. Ao confirmar, o DELETE é executado e o estado é
+   * zerado, fechando o modal.
+   */
+  const [idParaDeletar, setIdParaDeletar] = useState(null)
+
   useEffect(() => {
     fetchSalarios()
   }, [])
 
+  /*
+   * Busca os salários do usuário autenticado.
+   *
+   * O endpoint correto é GET /salario (singular), conforme mapeado em
+   * SalarioController com @RequestMapping("/salario").
+   * Usar /salarios (plural) resultava em 404 — esse era o bug original.
+   */
   const fetchSalarios = async () => {
     try {
-      const response = await api.get('/salarios')
+      const response = await api.get('/salario')
       setSalarios(response.data)
       setError('')
     } catch (err) {
@@ -35,7 +53,8 @@ export default function Salarios() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     try {
-      await api.post('/salarios', formData)
+      // POST /salario — cria novo registro de entrada/salário
+      await api.post('/salario', formData)
       setFormData({ valor: '', comissao: '', adicional: '', descricao: '', data: '' })
       setIsModalOpen(false)
       await fetchSalarios()
@@ -44,12 +63,15 @@ export default function Salarios() {
     }
   }
 
-  const handleDelete = async (id) => {
-    if (!window.confirm('Deseja deletar esta entrada?')) return
+  const handleDelete = async () => {
+    if (!idParaDeletar) return
     try {
-      await api.delete(`/salarios/${id}`)
+      // DELETE /salario/{id} — remove o registro pelo ID
+      await api.delete(`/salario/${idParaDeletar}`)
+      setIdParaDeletar(null)
       await fetchSalarios()
     } catch (err) {
+      setIdParaDeletar(null)
       setError('Erro ao deletar entrada')
     }
   }
@@ -62,6 +84,11 @@ export default function Salarios() {
     )
   }
 
+  /*
+   * Calcula o total do mês somando valor base + comissão + adicional.
+   * Usamos Number() para converter strings vindas do input ou do backend
+   * antes de somar — evita concatenação acidental de strings ("100" + "50" = "10050").
+   */
   const totalMes = salarios.reduce((acc, sal) => {
     return acc + (Number(sal.valor || 0) + Number(sal.comissao || 0) + Number(sal.adicional || 0))
   }, 0)
@@ -127,7 +154,7 @@ export default function Salarios() {
                     </td>
                     <td className="px-6 py-4 text-center">
                       <button
-                        onClick={() => handleDelete(salario.id)}
+                        onClick={() => setIdParaDeletar(salario.id)}
                         className="text-negative hover:text-negative hover:bg-negative hover:bg-opacity-10 p-2 rounded transition-colors"
                         title="Deletar"
                       >
@@ -148,6 +175,34 @@ export default function Salarios() {
         </table>
       </div>
 
+      {/* Modal de confirmação de exclusão */}
+      <Modal
+        isOpen={idParaDeletar !== null}
+        title="Confirmar Exclusão"
+        onClose={() => setIdParaDeletar(null)}
+      >
+        <div className="space-y-4">
+          <p className="text-text-secondary text-sm">
+            Tem certeza que deseja excluir esta entrada? Esta ação não pode ser desfeita.
+          </p>
+          <div className="flex gap-3">
+            <button
+              onClick={() => setIdParaDeletar(null)}
+              className="flex-1 border border-border-dark text-text-secondary px-4 py-2 rounded hover:bg-surface"
+            >
+              Cancelar
+            </button>
+            <button
+              onClick={handleDelete}
+              className="flex-1 bg-negative bg-opacity-20 border border-negative border-opacity-40 text-negative px-4 py-2 rounded hover:bg-opacity-30"
+            >
+              Excluir
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Modal de criação de entrada */}
       <Modal isOpen={isModalOpen} title="Nova Entrada" onClose={() => setIsModalOpen(false)}>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -155,6 +210,7 @@ export default function Salarios() {
             <input
               type="number"
               step="0.01"
+              min="0.01"
               placeholder="0,00"
               value={formData.valor}
               onChange={(e) => setFormData({ ...formData, valor: e.target.value })}
@@ -169,6 +225,7 @@ export default function Salarios() {
               <input
                 type="number"
                 step="0.01"
+                min="0"
                 placeholder="0,00"
                 value={formData.comissao}
                 onChange={(e) => setFormData({ ...formData, comissao: e.target.value })}
@@ -180,6 +237,7 @@ export default function Salarios() {
               <input
                 type="number"
                 step="0.01"
+                min="0"
                 placeholder="0,00"
                 value={formData.adicional}
                 onChange={(e) => setFormData({ ...formData, adicional: e.target.value })}
@@ -218,10 +276,7 @@ export default function Salarios() {
             >
               Cancelar
             </button>
-            <button
-              type="submit"
-              className="btn-outlined-lg flex-1"
-            >
+            <button type="submit" className="btn-outlined-lg flex-1">
               Salvar
             </button>
           </div>

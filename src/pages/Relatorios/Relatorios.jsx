@@ -9,7 +9,7 @@ export default function Relatorios() {
   const [error, setError] = useState('')
   const [mesSelected, setMesSelected] = useState(new Date().getMonth() + 1)
 
-  // ✅ ALTERAÇÃO 1: Array de meses com nome e número separados
+  // Meses com nome legível para o usuário e número para a query string
   const meses = [
     { nome: 'Janeiro', numero: 1 },
     { nome: 'Fevereiro', numero: 2 },
@@ -25,14 +25,32 @@ export default function Relatorios() {
     { nome: 'Dezembro', numero: 12 },
   ]
 
+  /*
+   * Recarrega o relatório sempre que o mês selecionado mudar.
+   * useEffect com dependência [mesSelected] garante que cada troca de mês
+   * dispara uma nova requisição — sem isso, o filtro seria puramente decorativo.
+   */
   useEffect(() => {
     fetchRelatorio()
   }, [mesSelected])
 
   const fetchRelatorio = async () => {
+    setLoading(true)
     try {
       const ano = new Date().getFullYear()
-      const response = await api.get(`/gastos/categorias?mes=${mesSelected}&ano=${ano}`)
+
+      /*
+       * Endpoint correto: /gastos/relatorio (não /gastos/categorias).
+       *
+       * /gastos/categorias retorna apenas Map<String,Double> — não tem
+       * totalEntradas, totalSaidas nem a estrutura de categoria com média e percentual.
+       *
+       * /gastos/relatorio retorna RelatorioMensalDTO com:
+       *   - categorias: List<CategoriaDTO> com nome, valor, percentual, media
+       *   - totalEntradas
+       *   - totalSaidas
+       */
+      const response = await api.get(`/gastos/relatorio?mes=${mesSelected}&ano=${ano}`)
       setRelatorio(response.data)
       setError('')
     } catch (err) {
@@ -42,8 +60,15 @@ export default function Relatorios() {
     }
   }
 
+  /*
+   * Exporta os dados de categorias como arquivo CSV.
+   *
+   * Blob + createObjectURL cria uma URL temporária no browser (blob://...).
+   * Criar um <a> programaticamente e chamar .click() simula o download —
+   * a URL é revogada logo depois para liberar memória.
+   */
   const handleExportCSV = () => {
-    if (!relatorio) return
+    if (!relatorio?.categorias?.length) return
 
     const headers = ['Categoria', 'Total Gasto', 'Participação %', 'Média Mensal']
     const csvContent = [
@@ -73,7 +98,50 @@ export default function Relatorios() {
     )
   }
 
-  if (!relatorio) return null
+  /*
+   * Por que o erro é tratado AQUI e não em `if (!relatorio) return null`?
+   *
+   * Se o fetch falhar, `relatorio` fica null E `error` fica preenchido.
+   * O padrão original tinha `if (!relatorio) return null` ANTES do bloco
+   * de erro, então o componente retornava null e o usuário nunca via a mensagem.
+   *
+   * Solução: quando não há dados, renderizamos o cabeçalho da página com o
+   * seletor de mês e a mensagem de erro — o usuário pode trocar o mês e
+   * tentar novamente sem precisar recarregar a página.
+   */
+  if (!relatorio) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h1 className="text-3xl font-bold text-text-primary">Relatórios</h1>
+          <div>
+            <label className="label-uppercase text-text-secondary block mb-2 text-xs">Selecionar Mês</label>
+            <select
+              value={mesSelected}
+              onChange={(e) => setMesSelected(Number(e.target.value))}
+              className="input-dark px-4 py-3"
+            >
+              {meses.map(mes => (
+                <option key={mes.numero} value={mes.numero}>{mes.nome}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        {error ? (
+          <div className="card-base border-negative border-opacity-30 p-4 text-negative text-sm">
+            {error}
+          </div>
+        ) : (
+          <div className="card-base p-8 text-center text-text-secondary">
+            Nenhum dado disponível para este período
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  // Aqui chegamos somente quando relatorio !== null
 
   const chartDataPie = relatorio.categorias?.map(cat => ({
     name: cat.nome,
@@ -87,6 +155,7 @@ export default function Relatorios() {
 
   const COLORS = ['#C084FC', '#F87171', '#10B981', '#3B82F6', '#F59E0B', '#8B5CF6', '#EC4899', '#06B6D4']
 
+  // Total gasto no mês — soma das categorias para calcular percentual local
   const totalGasto = relatorio.categorias?.reduce((acc, cat) => acc + Number(cat.valor), 0) || 0
 
   return (
@@ -96,7 +165,6 @@ export default function Relatorios() {
         <div className="flex gap-4 items-end">
           <div>
             <label className="label-uppercase text-text-secondary block mb-2 text-xs">Selecionar Mês</label>
-            {/* ✅ ALTERAÇÃO 2: select no lugar de input number */}
             <select
               value={mesSelected}
               onChange={(e) => setMesSelected(Number(e.target.value))}
@@ -119,6 +187,7 @@ export default function Relatorios() {
         </div>
       </div>
 
+      {/* Mostrado apenas se ocorrer erro após já ter dados (raro, mas possível) */}
       {error && (
         <div className="card-base border-negative border-opacity-30 p-4 text-negative text-sm">
           {error}
@@ -183,6 +252,11 @@ export default function Relatorios() {
           <tbody>
             {relatorio.categorias && relatorio.categorias.length > 0 ? (
               relatorio.categorias.map((categoria) => {
+                /*
+                 * Recalculamos o percentual no frontend para garantir que
+                 * a barra de progresso reflita a proporção dentro dos dados
+                 * já carregados, independente do valor vindo do backend.
+                 */
                 const percentual = totalGasto > 0 ? (Number(categoria.valor) / totalGasto) * 100 : 0
                 return (
                   <tr key={categoria.nome} className="border-b border-border-dark hover:bg-surface hover:bg-opacity-50">

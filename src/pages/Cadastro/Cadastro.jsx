@@ -3,7 +3,6 @@ import { useNavigate, Link } from 'react-router-dom'
 import api from '../../services/api'
 
 export default function Cadastro() {
-  const [usuario, setUsuario] = useState('')
   const [email, setEmail] = useState('')
   const [senha, setSenha] = useState('')
   const [repetirSenha, setRepetirSenha] = useState('')
@@ -15,23 +14,44 @@ export default function Cadastro() {
     e.preventDefault()
     setErro('')
 
+    // Validação client-side: evita roundtrip ao servidor para erros previsíveis
     if (senha !== repetirSenha) {
       setErro('As senhas não coincidem')
       return
     }
 
     if (senha.length < 6) {
-      setErro('Senha deve ter no mínimo 6 caracteres')
+      setErro('A senha deve ter no mínimo 6 caracteres')
       return
     }
 
     setLoading(true)
 
     try {
-      await api.post('/auth/registrar', { usuario, email, senha })
+      /*
+       * Enviamos apenas email e senha — o campo "nome" foi removido porque
+       * o backend não possui esse campo no model Usuario. Coletar um dado
+       * que é descartado no servidor é enganoso para o usuário e não segue
+       * o princípio de minimização de dados.
+       *
+       * Para adicionar nome no futuro: criar campo em Usuario.java,
+       * gerar migration ALTER TABLE, e restaurar o campo aqui.
+       */
+      await api.post('/auth/registrar', { email, senha })
       navigate('/login')
     } catch (error) {
-      setErro(error.response?.data?.message || 'Erro ao realizar cadastro')
+      /*
+       * O backend retorna strings simples. Exemplos:
+       *   409 → "E-mail já cadastrado."
+       *   400 → mensagem de validação do @Valid
+       *
+       * Exibimos a mensagem do backend diretamente quando disponível.
+       * O fallback genérico cobre erros de rede ou respostas inesperadas.
+       */
+      const mensagemBackend = error.response?.data
+      setErro(typeof mensagemBackend === 'string' && mensagemBackend
+        ? mensagemBackend
+        : 'Erro ao realizar cadastro. Tente novamente.')
     } finally {
       setLoading(false)
     }
@@ -50,18 +70,6 @@ export default function Cadastro() {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="label-uppercase text-text-secondary block mb-2">Nome</label>
-              <input
-                type="text"
-                placeholder="Seu nome completo"
-                value={usuario}
-                onChange={(e) => setUsuario(e.target.value)}
-                className="input-dark w-full px-4 py-3"
-                required
-              />
-            </div>
-
-            <div>
               <label className="label-uppercase text-text-secondary block mb-2">Email</label>
               <input
                 type="email"
@@ -77,7 +85,7 @@ export default function Cadastro() {
               <label className="label-uppercase text-text-secondary block mb-2">Senha</label>
               <input
                 type="password"
-                placeholder="Crie uma senha"
+                placeholder="Crie uma senha (mín. 6 caracteres)"
                 value={senha}
                 onChange={(e) => setSenha(e.target.value)}
                 className="input-dark w-full px-4 py-3"

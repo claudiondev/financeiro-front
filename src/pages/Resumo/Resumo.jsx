@@ -10,6 +10,13 @@ export default function Resumo() {
   useEffect(() => {
     const fetchResumo = async () => {
       try {
+        /*
+         * GET /gastos/resumo retorna um ResumoMensal com os campos:
+         *   - totalSalario, totalGasto, saldo, mensagem
+         *   - maiorGasto         → card "Maior Gasto"
+         *   - categorias         → Map<String,Double> para o gráfico de pizza
+         *   - transacoesRecentes → List<TransacaoDTO> com os últimos 5 gastos
+         */
         const response = await api.get('/gastos/resumo')
         setResumo(response.data)
       } catch (err) {
@@ -44,6 +51,11 @@ export default function Resumo() {
   const entradaValor = Number(resumo.totalSalario || 0)
   const saidaValor = Number(resumo.totalGasto || 0)
 
+  /*
+   * O backend serializa Map<String,Double> como JSON object: {"Alimentação": 500.0, ...}
+   * Object.entries() converte para array de pares [chave, valor], que o Recharts
+   * aceita via dataKey="value". Sem essa conversão, o gráfico não renderiza.
+   */
   const chartData = resumo.categorias ? Object.entries(resumo.categorias).map(([name, value]) => ({
     name,
     value: Number(value)
@@ -112,8 +124,13 @@ export default function Resumo() {
         <div className="card-base p-6 lg:col-span-2">
           <h2 className="label-uppercase text-text-secondary mb-4">Transações Recentes</h2>
           <div className="space-y-3 max-h-96 overflow-y-auto">
-            {resumo.transacoes && resumo.transacoes.length > 0 ? (
-              resumo.transacoes.map((tx) => (
+            {/*
+             * transacoesRecentes: campo adicionado ao ResumoMensal DTO.
+             * Contém os últimos 5 gastos ordenados por data decrescente.
+             * O campo "tipo" vem do TransacaoDTO: "entrada" ou "saida".
+             */}
+            {resumo.transacoesRecentes && resumo.transacoesRecentes.length > 0 ? (
+              resumo.transacoesRecentes.map((tx) => (
                 <div key={tx.id} className="flex items-center justify-between p-3 border border-border-dark rounded">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
@@ -130,6 +147,7 @@ export default function Resumo() {
             ) : (
               <p className="text-text-secondary text-center py-4">Nenhuma transação registrada</p>
             )}
+
           </div>
         </div>
       </div>

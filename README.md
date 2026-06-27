@@ -98,5 +98,3 @@ src/
 
 **Claudio Nascimento**
 🔗 [github.com/claudiondev](https://github.com/claudiondev)
-👨‍💻 Autor
-Feito por Claudio Nascimento (O Nascimento Web Developer)
