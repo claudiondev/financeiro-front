@@ -1,5 +1,5 @@
 import { NavLink, useNavigate } from 'react-router-dom'
-import { LogOut, Home, Wallet, FileText, Zap } from 'lucide-react'
+import { LogOut, Home, Wallet, FileText, Zap, Target } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import logoIcon from '../assets/logo-icon.png'
 
@@ -22,6 +22,7 @@ export default function Sidebar() {
     { name: 'Resumo', path: '/resumo', icon: Home },
     { name: 'Gastos', path: '/gastos', icon: Wallet },
     { name: 'Salário', path: '/salarios', icon: Zap },
+    { name: 'Metas', path: '/metas', icon: Target },
     { name: 'Relatórios', path: '/relatorios', icon: FileText },
   ]
 
