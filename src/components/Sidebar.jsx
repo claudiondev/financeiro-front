@@ -1,27 +1,63 @@
 import { NavLink, useNavigate } from 'react-router-dom'
-import { LogOut, Home, Wallet, FileText, Zap, Target, TrendingUp } from 'lucide-react'
+import { LogOut, Home, Wallet, FileText, Zap, Target, TrendingUp, Repeat, Pencil } from 'lucide-react'
 import { useState, useEffect } from 'react'
+import api, { extrairMensagemErro } from '../services/api'
+import Modal from './Modal'
+import Input from './ui/Input'
+import Button from './ui/Button'
 import logoIcon from '../assets/logo-icon.png'
 
 export default function Sidebar() {
   const navigate = useNavigate()
-  const [userName, setUserName] = useState('')
+  const [usuario, setUsuario] = useState(null)
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [nomeForm, setNomeForm] = useState('')
+  const [erro, setErro] = useState('')
 
   useEffect(() => {
-    const stored = localStorage.getItem('userName')
-    if (stored) setUserName(stored)
+    fetchUsuario()
   }, [])
+
+  const fetchUsuario = async () => {
+    try {
+      const response = await api.get('/usuario/me')
+      setUsuario(response.data)
+    } catch {
+      // Sem bloqueio: o resto da tela funciona normalmente mesmo se isso falhar
+    }
+  }
 
   const handleLogout = () => {
     localStorage.removeItem('token')
-    localStorage.removeItem('userName')
     navigate('/login')
   }
+
+  const abrirEdicaoDeNome = () => {
+    setNomeForm(usuario?.nome || '')
+    setErro('')
+    setIsModalOpen(true)
+  }
+
+  const handleSalvarNome = async (e) => {
+    e.preventDefault()
+    try {
+      const response = await api.put('/usuario/perfil', { nome: nomeForm || null })
+      setUsuario(response.data)
+      setIsModalOpen(false)
+    } catch (err) {
+      setErro(extrairMensagemErro(err, 'Erro ao salvar nome'))
+    }
+  }
+
+  // Sem nome definido (conta antiga ou quem pulou o campo no cadastro): usa a
+  // parte antes do @ do e-mail em vez de mostrar o e-mail inteiro.
+  const nomeExibido = usuario?.nome || usuario?.email?.split('@')[0] || ''
 
   const navItems = [
     { name: 'Resumo', path: '/resumo', icon: Home },
     { name: 'Gastos', path: '/gastos', icon: Wallet },
     { name: 'Salário', path: '/salarios', icon: Zap },
+    { name: 'Contas Fixas', path: '/contas-fixas', icon: Repeat },
     { name: 'Metas', path: '/metas', icon: Target },
     { name: 'Evolução', path: '/evolucao', icon: TrendingUp },
     { name: 'Relatórios', path: '/relatorios', icon: FileText },
@@ -38,10 +74,17 @@ export default function Sidebar() {
             <p className="text-xs font-bold text-accent-600 uppercase tracking-wide">Financeiro</p>
           </div>
         </div>
-        {userName && (
-          <p className="text-xs text-text-secondary mt-3 truncate">
-            Olá, <span className="text-text-primary font-medium">{userName}</span>
-          </p>
+        {nomeExibido && (
+          <button
+            onClick={abrirEdicaoDeNome}
+            className="flex items-center gap-1.5 mt-3 text-left group"
+            title="Editar nome"
+          >
+            <p className="text-xs text-text-secondary truncate">
+              Olá, <span className="text-text-primary font-medium">{nomeExibido}</span>
+            </p>
+            <Pencil size={11} className="text-text-secondary opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
+          </button>
         )}
       </div>
 
@@ -78,6 +121,34 @@ export default function Sidebar() {
           Sair
         </button>
       </div>
+
+      <Modal isOpen={isModalOpen} title="Editar nome" onClose={() => setIsModalOpen(false)}>
+        <form onSubmit={handleSalvarNome} className="space-y-4">
+          <Input
+            id="nome"
+            label="Nome"
+            type="text"
+            placeholder="Como podemos te chamar?"
+            value={nomeForm}
+            onChange={(e) => setNomeForm(e.target.value)}
+          />
+
+          {erro && (
+            <div className="bg-red-50 border border-negative border-opacity-30 text-negative text-sm p-3 rounded-lg">
+              {erro}
+            </div>
+          )}
+
+          <div className="flex gap-3 pt-2">
+            <Button type="button" variant="outline" className="flex-1" onClick={() => setIsModalOpen(false)}>
+              Cancelar
+            </Button>
+            <Button type="submit" className="flex-1">
+              Salvar
+            </Button>
+          </div>
+        </form>
+      </Modal>
     </aside>
   )
 }
