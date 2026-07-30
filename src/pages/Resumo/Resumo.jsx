@@ -1,6 +1,13 @@
 import { useState, useEffect } from 'react'
-import { PieChart, Pie, Cell, Legend, ResponsiveContainer } from 'recharts'
-import api from '../../services/api'
+import { PieChart, Pie, Cell, Legend, Tooltip, ResponsiveContainer } from 'recharts'
+import api, { extrairMensagemErro } from '../../services/api'
+import Card from '../../components/ui/Card'
+import StatCard from '../../components/ui/StatCard'
+import PageHeader from '../../components/ui/PageHeader'
+import EmptyState from '../../components/ui/EmptyState'
+import Badge from '../../components/ui/Badge'
+import PageSkeleton from '../../components/ui/Skeleton'
+import { rotuloCategoria, corHexCategoria } from '../../constants/categorias'
 
 export default function Resumo() {
   const [resumo, setResumo] = useState(null)
@@ -14,13 +21,13 @@ export default function Resumo() {
          * GET /gastos/resumo retorna um ResumoMensal com os campos:
          *   - totalSalario, totalGasto, saldo, mensagem
          *   - maiorGasto         → card "Maior Gasto"
-         *   - categorias         → Map<String,Double> para o gráfico de pizza
+         *   - categorias         → Map<String,BigDecimal> para o gráfico de pizza
          *   - transacoesRecentes → List<TransacaoDTO> com os últimos 5 gastos
          */
         const response = await api.get('/gastos/resumo')
         setResumo(response.data)
       } catch (err) {
-        setError('Erro ao carregar dados')
+        setError(extrairMensagemErro(err, 'Erro ao carregar dados'))
       } finally {
         setLoading(false)
       }
@@ -30,18 +37,14 @@ export default function Resumo() {
   }, [])
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center h-96">
-        <p className="text-text-secondary">Carregando...</p>
-      </div>
-    )
+    return <PageSkeleton />
   }
 
   if (error) {
     return (
-      <div className="card-base border-negative border-opacity-30 p-6 text-negative">
+      <Card className="border-negative border-opacity-30 p-6 text-negative">
         {error}
-      </div>
+      </Card>
     )
   }
 
@@ -52,49 +55,37 @@ export default function Resumo() {
   const saidaValor = Number(resumo.totalGasto || 0)
 
   /*
-   * O backend serializa Map<String,Double> como JSON object: {"Alimentação": 500.0, ...}
-   * Object.entries() converte para array de pares [chave, valor], que o Recharts
-   * aceita via dataKey="value". Sem essa conversão, o gráfico não renderiza.
+   * O backend serializa Map<String,BigDecimal> como JSON object: {"ALIMENTACAO": 500.0, ...}
+   * (a chave é o nome da constante do enum CategoriaGasto). rotuloCategoria traduz
+   * para o texto em português exibido no gráfico.
    */
-  const chartData = resumo.categorias ? Object.entries(resumo.categorias).map(([name, value]) => ({
-    name,
-    value: Number(value)
+  const chartData = resumo.categorias ? Object.entries(resumo.categorias).map(([categoria, value]) => ({
+    categoria,
+    name: rotuloCategoria(categoria),
+    value: Number(value),
   })) : []
-
-  const COLORS = ['#C084FC', '#F87171', '#10B981', '#3B82F6', '#F59E0B', '#8B5CF6', '#EC4899', '#06B6D4']
 
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-bold text-text-primary">Resumo Financeiro</h1>
+      <PageHeader title="Resumo Financeiro" />
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="card-base p-6 space-y-2">
-          <p className="label-uppercase text-text-secondary">Saldo Disponível</p>
-          <p className={`text-3xl font-bold ${saldoValor >= 0 ? 'text-positive' : 'text-negative'}`}>
-            R$ {saldoValor.toFixed(2)}
-          </p>
-        </div>
-
-        <div className="card-base p-6 space-y-2">
-          <p className="label-uppercase text-text-secondary">Total Entradas</p>
-          <p className="text-3xl font-bold text-positive">R$ {entradaValor.toFixed(2)}</p>
-        </div>
-
-        <div className="card-base p-6 space-y-2">
-          <p className="label-uppercase text-text-secondary">Total Saídas</p>
-          <p className="text-3xl font-bold text-negative">R$ {saidaValor.toFixed(2)}</p>
-        </div>
-
-        <div className="card-base p-6 space-y-2">
-          <p className="label-uppercase text-text-secondary">Maior Gasto</p>
-          <p className="text-3xl font-bold text-accent">
-            R$ {Number(resumo.maiorGasto || 0).toFixed(2)}
-          </p>
-        </div>
+        <StatCard
+          label="Saldo Disponível"
+          value={`R$ ${saldoValor.toFixed(2)}`}
+          valueClassName={saldoValor >= 0 ? 'text-positive' : 'text-negative'}
+        />
+        <StatCard label="Total Entradas" value={`R$ ${entradaValor.toFixed(2)}`} valueClassName="text-positive" />
+        <StatCard label="Total Saídas" value={`R$ ${saidaValor.toFixed(2)}`} valueClassName="text-negative" />
+        <StatCard
+          label="Maior Gasto"
+          value={`R$ ${Number(resumo.maiorGasto || 0).toFixed(2)}`}
+          valueClassName="text-accent-600"
+        />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="card-base p-6 lg:col-span-1">
+        <Card className="p-6 lg:col-span-1">
           <h2 className="label-uppercase text-text-secondary mb-4">Gastos por Categoria</h2>
           {chartData.length > 0 ? (
             <ResponsiveContainer width="100%" height={300}>
@@ -103,38 +94,31 @@ export default function Resumo() {
                   data={chartData}
                   cx="50%"
                   cy="50%"
-                  labelLine={false}
-                  label={({ name, value }) => `${name}: ${value}`}
-                  outerRadius={100}
-                  fill="#8884d8"
+                  outerRadius={90}
                   dataKey="value"
                 >
-                  {chartData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  {chartData.map((entry) => (
+                    <Cell key={entry.categoria} fill={corHexCategoria(entry.categoria)} />
                   ))}
                 </Pie>
+                <Tooltip formatter={(value) => `R$ ${Number(value).toFixed(2)}`} />
                 <Legend />
               </PieChart>
             </ResponsiveContainer>
           ) : (
-            <p className="text-text-secondary text-center py-8">Nenhum gasto registrado</p>
+            <EmptyState message="Nenhum gasto registrado" />
           )}
-        </div>
+        </Card>
 
-        <div className="card-base p-6 lg:col-span-2">
+        <Card className="p-6 lg:col-span-2">
           <h2 className="label-uppercase text-text-secondary mb-4">Transações Recentes</h2>
           <div className="space-y-3 max-h-96 overflow-y-auto">
-            {/*
-             * transacoesRecentes: campo adicionado ao ResumoMensal DTO.
-             * Contém os últimos 5 gastos ordenados por data decrescente.
-             * O campo "tipo" vem do TransacaoDTO: "entrada" ou "saida".
-             */}
             {resumo.transacoesRecentes && resumo.transacoesRecentes.length > 0 ? (
               resumo.transacoesRecentes.map((tx) => (
-                <div key={tx.id} className="flex items-center justify-between p-3 border border-border-dark rounded">
+                <div key={tx.id} className="flex items-center justify-between p-3 border border-border rounded">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="badge-category">{tx.categoria}</span>
+                      <Badge>{rotuloCategoria(tx.categoria)}</Badge>
                     </div>
                     <p className="text-text-secondary text-xs">{tx.descricao}</p>
                     <p className="text-text-secondary text-xs">{tx.data}</p>
@@ -145,11 +129,10 @@ export default function Resumo() {
                 </div>
               ))
             ) : (
-              <p className="text-text-secondary text-center py-4">Nenhuma transação registrada</p>
+              <EmptyState message="Nenhuma transação registrada" className="py-4" />
             )}
-
           </div>
-        </div>
+        </Card>
       </div>
     </div>
   )

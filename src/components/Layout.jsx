@@ -13,7 +13,7 @@ export default function Layout() {
   }, [navigate])
 
   return (
-    <div className="flex h-screen bg-dark overflow-hidden">
+    <div className="flex h-screen bg-background overflow-hidden">
       <Sidebar />
       <main className="flex-1 ml-64 overflow-auto">
         <div className="p-8 max-w-7xl mx-auto">

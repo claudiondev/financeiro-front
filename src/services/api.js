@@ -51,4 +51,17 @@ api.interceptors.response.use(
   }
 )
 
+/**
+ * Extrai a mensagem de erro do backend, cobrindo os dois formatos hoje em uso:
+ *   - string simples (AuthController, ex.: "Credenciais inválidas")
+ *   - objeto { erro: "..." } (GastoController/SalarioController, via GlobalExceptionHandler)
+ * Retorna o fallback se nenhum dos dois formatos for encontrado.
+ */
+export function extrairMensagemErro(error, fallback) {
+  const dados = error.response?.data
+  if (typeof dados === 'string' && dados) return dados
+  if (dados && typeof dados === 'object' && typeof dados.erro === 'string') return dados.erro
+  return fallback
+}
+
 export default api

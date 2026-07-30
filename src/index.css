@@ -13,7 +13,7 @@ html {
 }
 
 body {
-  @apply bg-dark text-text-primary;
+  @apply bg-background text-text-primary;
   margin: 0;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -24,23 +24,11 @@ body {
     @apply text-label uppercase font-semibold tracking-wider;
   }
 
-  .btn-outlined {
-    @apply border border-accent text-accent px-4 py-2 rounded transition-all hover:bg-accent hover:bg-opacity-10 focus:outline-none;
-  }
-
-  .btn-outlined-lg {
-    @apply border border-accent text-accent px-6 py-3 rounded text-sm font-semibold uppercase tracking-wider transition-all hover:bg-accent hover:bg-opacity-10 focus:outline-none;
-  }
-
   .card-base {
-    @apply bg-surface border border-border-dark rounded;
-  }
-
-  .input-dark {
-    @apply bg-surface border border-border-dark text-text-primary rounded focus:border-accent focus:outline-none transition-colors;
+    @apply bg-surface border border-border rounded-xl shadow-sm;
   }
 
   .badge-category {
-    @apply bg-gray-800 border-l-4 border-accent px-3;
-}
+    @apply bg-primary-50 border-l-4 border-accent px-3 py-1 rounded-md text-xs font-semibold text-primary-700;
+  }
 }

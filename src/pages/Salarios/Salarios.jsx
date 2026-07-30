@@ -1,20 +1,26 @@
 import { useState, useEffect } from 'react'
-import { Trash2, Plus } from 'lucide-react'
+import { Trash2, Plus, Pencil } from 'lucide-react'
 import Modal from '../../components/Modal'
-import api from '../../services/api'
+import api, { extrairMensagemErro } from '../../services/api'
+import PageHeader from '../../components/ui/PageHeader'
+import Card from '../../components/ui/Card'
+import Button from '../../components/ui/Button'
+import Input from '../../components/ui/Input'
+import Textarea from '../../components/ui/Textarea'
+import EmptyState from '../../components/ui/EmptyState'
+import PageSkeleton from '../../components/ui/Skeleton'
+import ConfirmDialog from '../../components/ui/ConfirmDialog'
+
+const FORM_VAZIO = { valor: '', comissao: '', adicional: '', descricao: '', data: '' }
 
 export default function Salarios() {
   const [salarios, setSalarios] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const [formData, setFormData] = useState({
-    valor: '',
-    comissao: '',
-    adicional: '',
-    descricao: '',
-    data: ''
-  })
+  const [formData, setFormData] = useState(FORM_VAZIO)
+  // null = criando uma entrada nova; id do salário = editando uma entrada existente
+  const [editandoId, setEditandoId] = useState(null)
 
   /*
    * Estado para confirmação de exclusão sem window.confirm().
@@ -44,7 +50,7 @@ export default function Salarios() {
       setSalarios(response.data)
       setError('')
     } catch (err) {
-      setError('Erro ao carregar salários')
+      setError(extrairMensagemErro(err, 'Erro ao carregar salários'))
     } finally {
       setLoading(false)
     }
@@ -53,14 +59,40 @@ export default function Salarios() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     try {
-      // POST /salario — cria novo registro de entrada/salário
-      await api.post('/salario', formData)
-      setFormData({ valor: '', comissao: '', adicional: '', descricao: '', data: '' })
-      setIsModalOpen(false)
+      if (editandoId) {
+        await api.put(`/salario/${editandoId}`, formData)
+      } else {
+        await api.post('/salario', formData)
+      }
+      fecharModal()
       await fetchSalarios()
     } catch (err) {
-      setError('Erro ao salvar entrada')
+      setError(extrairMensagemErro(err, 'Erro ao salvar entrada'))
     }
+  }
+
+  const abrirCriacao = () => {
+    setEditandoId(null)
+    setFormData(FORM_VAZIO)
+    setIsModalOpen(true)
+  }
+
+  const abrirEdicao = (salario) => {
+    setEditandoId(salario.id)
+    setFormData({
+      valor: salario.valor,
+      comissao: salario.comissao ?? '',
+      adicional: salario.adicional ?? '',
+      descricao: salario.descricao || '',
+      data: salario.data,
+    })
+    setIsModalOpen(true)
+  }
+
+  const fecharModal = () => {
+    setIsModalOpen(false)
+    setEditandoId(null)
+    setFormData(FORM_VAZIO)
   }
 
   const handleDelete = async () => {
@@ -72,16 +104,12 @@ export default function Salarios() {
       await fetchSalarios()
     } catch (err) {
       setIdParaDeletar(null)
-      setError('Erro ao deletar entrada')
+      setError(extrairMensagemErro(err, 'Erro ao deletar entrada'))
     }
   }
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center h-96">
-        <p className="text-text-secondary">Carregando...</p>
-      </div>
-    )
+    return <PageSkeleton />
   }
 
   /*
@@ -95,32 +123,28 @@ export default function Salarios() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-text-primary">Salários e Entradas</h1>
-        <button
-          onClick={() => setIsModalOpen(true)}
-          className="btn-outlined-lg inline-flex items-center gap-2"
-        >
+      <PageHeader title="Salários e Entradas">
+        <Button onClick={abrirCriacao}>
           <Plus size={18} />
           Nova Entrada
-        </button>
-      </div>
+        </Button>
+      </PageHeader>
 
-      <div className="card-base p-6">
+      <Card className="p-6">
         <p className="label-uppercase text-text-secondary mb-2">Total Recebido no Mês</p>
         <p className="text-4xl font-bold text-positive">R$ {totalMes.toFixed(2)}</p>
-      </div>
+      </Card>
 
       {error && (
-        <div className="card-base border-negative border-opacity-30 p-4 text-negative text-sm">
+        <Card className="border-negative border-opacity-30 p-4 text-negative text-sm">
           {error}
-        </div>
+        </Card>
       )}
 
-      <div className="card-base overflow-hidden">
+      <Card className="overflow-hidden">
         <table className="w-full">
           <thead>
-            <tr className="border-b border-border-dark bg-surface">
+            <tr className="border-b border-border bg-background">
               <th className="label-uppercase text-text-secondary text-left px-6 py-4">Data</th>
               <th className="label-uppercase text-text-secondary text-left px-6 py-4">Descrição</th>
               <th className="label-uppercase text-text-secondary text-right px-6 py-4">Valor Principal</th>
@@ -135,7 +159,7 @@ export default function Salarios() {
               salarios.map((salario) => {
                 const total = Number(salario.valor || 0) + Number(salario.comissao || 0) + Number(salario.adicional || 0)
                 return (
-                  <tr key={salario.id} className="border-b border-border-dark hover:bg-surface hover:bg-opacity-50">
+                  <tr key={salario.id} className="border-b border-border hover:bg-background transition-colors">
                     <td className="px-6 py-4 text-text-secondary text-sm">{salario.data}</td>
                     <td className="px-6 py-4">
                       <p className="text-text-primary text-sm font-medium">{salario.descricao || '-'}</p>
@@ -153,132 +177,102 @@ export default function Salarios() {
                       R$ {total.toFixed(2)}
                     </td>
                     <td className="px-6 py-4 text-center">
-                      <button
-                        onClick={() => setIdParaDeletar(salario.id)}
-                        className="text-negative hover:text-negative hover:bg-negative hover:bg-opacity-10 p-2 rounded transition-colors"
-                        title="Deletar"
-                      >
-                        <Trash2 size={16} />
-                      </button>
+                      <div className="flex items-center justify-center gap-1">
+                        <button
+                          onClick={() => abrirEdicao(salario)}
+                          className="text-text-secondary hover:text-primary hover:bg-primary-50 p-2 rounded transition-colors"
+                          title="Editar"
+                        >
+                          <Pencil size={16} />
+                        </button>
+                        <button
+                          onClick={() => setIdParaDeletar(salario.id)}
+                          className="text-negative hover:bg-red-50 p-2 rounded transition-colors"
+                          title="Deletar"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 )
               })
             ) : (
               <tr>
-                <td colSpan="7" className="px-6 py-8 text-center text-text-secondary">
-                  Nenhuma entrada registrada
+                <td colSpan="7">
+                  <EmptyState message="Nenhuma entrada registrada" />
                 </td>
               </tr>
             )}
           </tbody>
         </table>
-      </div>
+      </Card>
 
-      {/* Modal de confirmação de exclusão */}
-      <Modal
+      <ConfirmDialog
         isOpen={idParaDeletar !== null}
-        title="Confirmar Exclusão"
-        onClose={() => setIdParaDeletar(null)}
-      >
-        <div className="space-y-4">
-          <p className="text-text-secondary text-sm">
-            Tem certeza que deseja excluir esta entrada? Esta ação não pode ser desfeita.
-          </p>
-          <div className="flex gap-3">
-            <button
-              onClick={() => setIdParaDeletar(null)}
-              className="flex-1 border border-border-dark text-text-secondary px-4 py-2 rounded hover:bg-surface"
-            >
-              Cancelar
-            </button>
-            <button
-              onClick={handleDelete}
-              className="flex-1 bg-negative bg-opacity-20 border border-negative border-opacity-40 text-negative px-4 py-2 rounded hover:bg-opacity-30"
-            >
-              Excluir
-            </button>
-          </div>
-        </div>
-      </Modal>
+        message="Tem certeza que deseja excluir esta entrada? Esta ação não pode ser desfeita."
+        onCancel={() => setIdParaDeletar(null)}
+        onConfirm={handleDelete}
+      />
 
-      {/* Modal de criação de entrada */}
-      <Modal isOpen={isModalOpen} title="Nova Entrada" onClose={() => setIsModalOpen(false)}>
+      {/* Modal de criação/edição de entrada — o mesmo form serve para os dois casos */}
+      <Modal isOpen={isModalOpen} title={editandoId ? 'Editar Entrada' : 'Nova Entrada'} onClose={fecharModal}>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="label-uppercase text-text-secondary block mb-2 text-xs">Valor Principal</label>
-            <input
-              type="number"
-              step="0.01"
-              min="0.01"
-              placeholder="0,00"
-              value={formData.valor}
-              onChange={(e) => setFormData({ ...formData, valor: e.target.value })}
-              className="input-dark w-full px-4 py-3"
-              required
-            />
-          </div>
+          <Input
+            label="Valor Principal"
+            type="number"
+            step="0.01"
+            min="0.01"
+            placeholder="0,00"
+            value={formData.valor}
+            onChange={(e) => setFormData({ ...formData, valor: e.target.value })}
+            required
+          />
 
           <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="label-uppercase text-text-secondary block mb-2 text-xs">Comissão</label>
-              <input
-                type="number"
-                step="0.01"
-                min="0"
-                placeholder="0,00"
-                value={formData.comissao}
-                onChange={(e) => setFormData({ ...formData, comissao: e.target.value })}
-                className="input-dark w-full px-4 py-3"
-              />
-            </div>
-            <div>
-              <label className="label-uppercase text-text-secondary block mb-2 text-xs">Adicional</label>
-              <input
-                type="number"
-                step="0.01"
-                min="0"
-                placeholder="0,00"
-                value={formData.adicional}
-                onChange={(e) => setFormData({ ...formData, adicional: e.target.value })}
-                className="input-dark w-full px-4 py-3"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="label-uppercase text-text-secondary block mb-2 text-xs">Descrição</label>
-            <textarea
-              placeholder="Ex: Salário Mensal"
-              value={formData.descricao}
-              onChange={(e) => setFormData({ ...formData, descricao: e.target.value })}
-              className="input-dark w-full px-4 py-3 resize-none"
-              rows="3"
+            <Input
+              label="Comissão"
+              type="number"
+              step="0.01"
+              min="0"
+              placeholder="0,00"
+              value={formData.comissao}
+              onChange={(e) => setFormData({ ...formData, comissao: e.target.value })}
+            />
+            <Input
+              label="Adicional"
+              type="number"
+              step="0.01"
+              min="0"
+              placeholder="0,00"
+              value={formData.adicional}
+              onChange={(e) => setFormData({ ...formData, adicional: e.target.value })}
             />
           </div>
 
-          <div>
-            <label className="label-uppercase text-text-secondary block mb-2 text-xs">Data</label>
-            <input
-              type="date"
-              value={formData.data}
-              onChange={(e) => setFormData({ ...formData, data: e.target.value })}
-              className="input-dark w-full px-4 py-3"
-              required
-            />
-          </div>
+          <Textarea
+            label="Descrição"
+            placeholder="Ex: Salário Mensal"
+            value={formData.descricao}
+            onChange={(e) => setFormData({ ...formData, descricao: e.target.value })}
+            rows="3"
+          />
+
+          <Input
+            label="Data"
+            type="date"
+            value={formData.data}
+            onChange={(e) => setFormData({ ...formData, data: e.target.value })}
+            required
+          />
 
           <div className="flex gap-3 pt-4">
-            <button
-              type="button"
-              onClick={() => setIsModalOpen(false)}
-              className="flex-1 border border-border-dark text-text-secondary px-4 py-2 rounded hover:bg-surface"
-            >
+            <Button type="button" variant="outline" className="flex-1" onClick={fecharModal}>
               Cancelar
-            </button>
-            <button type="submit" className="btn-outlined-lg flex-1">
+            </Button>
+            <Button type="submit" className="flex-1">
               Salvar
-            </button>
+            </Button>
           </div>
         </form>
       </Modal>

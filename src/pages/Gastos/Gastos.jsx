@@ -1,14 +1,29 @@
 import { useState, useEffect } from 'react'
-import { Trash2, Plus } from 'lucide-react'
+import { Trash2, Plus, Pencil } from 'lucide-react'
 import Modal from '../../components/Modal'
-import api from '../../services/api'
+import api, { extrairMensagemErro } from '../../services/api'
+import PageHeader from '../../components/ui/PageHeader'
+import Card from '../../components/ui/Card'
+import Button from '../../components/ui/Button'
+import Input from '../../components/ui/Input'
+import Select from '../../components/ui/Select'
+import Textarea from '../../components/ui/Textarea'
+import Badge from '../../components/ui/Badge'
+import EmptyState from '../../components/ui/EmptyState'
+import PageSkeleton from '../../components/ui/Skeleton'
+import ConfirmDialog from '../../components/ui/ConfirmDialog'
+import { CATEGORIAS, rotuloCategoria } from '../../constants/categorias'
+
+const FORM_VAZIO = { categoria: '', valor: '', descricao: '', data: '' }
 
 export default function Gastos() {
   const [gastos, setGastos] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const [formData, setFormData] = useState({ categoria: '', valor: '', descricao: '', data: '' })
+  const [formData, setFormData] = useState(FORM_VAZIO)
+  // null = criando um gasto novo; id do gasto = editando um gasto existente
+  const [editandoId, setEditandoId] = useState(null)
 
   // Filtros de busca
   const [mesFilter, setMesFilter] = useState(new Date().getMonth() + 1)
@@ -63,7 +78,7 @@ export default function Gastos() {
       setGastos(response.data)
       setError('')
     } catch (err) {
-      setError('Erro ao carregar gastos')
+      setError(extrairMensagemErro(err, 'Erro ao carregar gastos'))
     } finally {
       setLoading(false)
     }
@@ -72,13 +87,39 @@ export default function Gastos() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     try {
-      await api.post('/gastos', formData)
-      setFormData({ categoria: '', valor: '', descricao: '', data: '' })
-      setIsModalOpen(false)
+      if (editandoId) {
+        await api.put(`/gastos/${editandoId}`, formData)
+      } else {
+        await api.post('/gastos', formData)
+      }
+      fecharModal()
       await fetchGastos()
     } catch (err) {
-      setError('Erro ao salvar gasto')
+      setError(extrairMensagemErro(err, 'Erro ao salvar gasto'))
     }
+  }
+
+  const abrirCriacao = () => {
+    setEditandoId(null)
+    setFormData(FORM_VAZIO)
+    setIsModalOpen(true)
+  }
+
+  const abrirEdicao = (gasto) => {
+    setEditandoId(gasto.id)
+    setFormData({
+      categoria: gasto.categoria,
+      valor: gasto.valor,
+      descricao: gasto.descricao || '',
+      data: gasto.data,
+    })
+    setIsModalOpen(true)
+  }
+
+  const fecharModal = () => {
+    setIsModalOpen(false)
+    setEditandoId(null)
+    setFormData(FORM_VAZIO)
   }
 
   const handleDelete = async () => {
@@ -89,79 +130,63 @@ export default function Gastos() {
       await fetchGastos()
     } catch (err) {
       setIdParaDeletar(null)
-      setError('Erro ao deletar gasto')
+      setError(extrairMensagemErro(err, 'Erro ao deletar gasto'))
     }
   }
 
-  /*
-   * Filtragem local por categoria (dentro do mês já carregado do servidor).
-   * Derivamos as categorias disponíveis do próprio conjunto carregado,
-   * garantindo que o dropdown só mostra categorias do mês selecionado.
-   */
-  const categorias = [...new Set(gastos.map(g => g.categoria))]
+  // Filtragem local por categoria (dentro do mês já carregado do servidor)
+  const categoriasDoMes = [...new Set(gastos.map((g) => g.categoria))]
   const gastosExibidos = categoriaFilter
-    ? gastos.filter(g => g.categoria === categoriaFilter)
+    ? gastos.filter((g) => g.categoria === categoriaFilter)
     : gastos
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center h-96">
-        <p className="text-text-secondary">Carregando...</p>
-      </div>
-    )
+    return <PageSkeleton />
   }
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-text-primary">Gastos</h1>
-        <button
-          onClick={() => setIsModalOpen(true)}
-          className="btn-outlined-lg inline-flex items-center gap-2"
-        >
+      <PageHeader title="Gastos">
+        <Button onClick={abrirCriacao}>
           <Plus size={18} />
           Novo Gasto
-        </button>
-      </div>
+        </Button>
+      </PageHeader>
 
       {/* Filtros — mês consulta o servidor, categoria filtra localmente */}
       <div className="flex gap-4 flex-wrap">
-        <div>
-          <label className="label-uppercase text-text-secondary block mb-2 text-xs">Mês</label>
-          <input
-            type="number"
-            min="1"
-            max="12"
-            value={mesFilter}
-            onChange={(e) => setMesFilter(Number(e.target.value))}
-            className="input-dark px-3 py-2 w-20"
-          />
-        </div>
-        <div>
-          <label className="label-uppercase text-text-secondary block mb-2 text-xs">Categoria</label>
-          <select
-            value={categoriaFilter}
-            onChange={(e) => setCategoriaFilter(e.target.value)}
-            className="input-dark px-3 py-2"
-          >
-            <option value="">Todas</option>
-            {categorias.map(cat => (
-              <option key={cat} value={cat}>{cat}</option>
-            ))}
-          </select>
-        </div>
+        <Input
+          label="Mês"
+          type="number"
+          min="1"
+          max="12"
+          value={mesFilter}
+          onChange={(e) => setMesFilter(Number(e.target.value))}
+          className="w-20"
+        />
+        <Select
+          label="Categoria"
+          value={categoriaFilter}
+          onChange={(e) => setCategoriaFilter(e.target.value)}
+          className="w-48"
+        >
+          <option value="">Todas</option>
+          {categoriasDoMes.map((cat) => (
+            <option key={cat} value={cat}>{rotuloCategoria(cat)}</option>
+          ))}
+        </Select>
       </div>
 
       {error && (
-        <div className="card-base border-negative border-opacity-30 p-4 text-negative text-sm">
+        <Card className="border-negative border-opacity-30 p-4 text-negative text-sm">
           {error}
-        </div>
+        </Card>
       )}
 
-      <div className="card-base overflow-hidden">
+      <Card className="overflow-hidden">
         <table className="w-full">
           <thead>
-            <tr className="border-b border-border-dark bg-surface">
+            <tr className="border-b border-border bg-background">
               <th className="label-uppercase text-text-secondary text-left px-6 py-4">Data</th>
               <th className="label-uppercase text-text-secondary text-left px-6 py-4">Descrição</th>
               <th className="label-uppercase text-text-secondary text-left px-6 py-4">Categoria</th>
@@ -172,128 +197,104 @@ export default function Gastos() {
           <tbody>
             {gastosExibidos.length > 0 ? (
               gastosExibidos.map((gasto) => (
-                <tr key={gasto.id} className="border-b border-border-dark hover:bg-surface hover:bg-opacity-50">
+                <tr key={gasto.id} className="border-b border-border hover:bg-background transition-colors">
                   <td className="px-6 py-4 text-text-secondary text-sm">{gasto.data}</td>
                   <td className="px-6 py-4">
                     <p className="text-text-primary text-sm font-medium">{gasto.descricao || '-'}</p>
                   </td>
                   <td className="px-6 py-4">
-                    <span className="badge-category">{gasto.categoria}</span>
+                    <Badge>{rotuloCategoria(gasto.categoria)}</Badge>
                   </td>
                   <td className="px-6 py-4 text-right font-bold text-negative">
                     R$ {Number(gasto.valor).toFixed(2)}
                   </td>
                   <td className="px-6 py-4 text-center">
-                    <button
-                      onClick={() => setIdParaDeletar(gasto.id)}
-                      className="text-negative hover:text-negative hover:bg-negative hover:bg-opacity-10 p-2 rounded transition-colors"
-                      title="Deletar"
-                    >
-                      <Trash2 size={16} />
-                    </button>
+                    <div className="flex items-center justify-center gap-1">
+                      <button
+                        onClick={() => abrirEdicao(gasto)}
+                        className="text-text-secondary hover:text-primary hover:bg-primary-50 p-2 rounded transition-colors"
+                        title="Editar"
+                      >
+                        <Pencil size={16} />
+                      </button>
+                      <button
+                        onClick={() => setIdParaDeletar(gasto.id)}
+                        className="text-negative hover:bg-red-50 p-2 rounded transition-colors"
+                        title="Deletar"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan="5" className="px-6 py-8 text-center text-text-secondary">
-                  Nenhum gasto registrado para este período
+                <td colSpan="5">
+                  <EmptyState message="Nenhum gasto registrado para este período" />
                 </td>
               </tr>
             )}
           </tbody>
         </table>
-      </div>
+      </Card>
 
-      {/* Modal de confirmação de exclusão */}
-      <Modal
+      <ConfirmDialog
         isOpen={idParaDeletar !== null}
-        title="Confirmar Exclusão"
-        onClose={() => setIdParaDeletar(null)}
-      >
-        <div className="space-y-4">
-          <p className="text-text-secondary text-sm">
-            Tem certeza que deseja excluir este gasto? Esta ação não pode ser desfeita.
-          </p>
-          <div className="flex gap-3">
-            <button
-              onClick={() => setIdParaDeletar(null)}
-              className="flex-1 border border-border-dark text-text-secondary px-4 py-2 rounded hover:bg-surface"
-            >
-              Cancelar
-            </button>
-            <button
-              onClick={handleDelete}
-              className="flex-1 bg-negative bg-opacity-20 border border-negative border-opacity-40 text-negative px-4 py-2 rounded hover:bg-opacity-30"
-            >
-              Excluir
-            </button>
-          </div>
-        </div>
-      </Modal>
+        message="Tem certeza que deseja excluir este gasto? Esta ação não pode ser desfeita."
+        onCancel={() => setIdParaDeletar(null)}
+        onConfirm={handleDelete}
+      />
 
-      {/* Modal de criação de gasto */}
-      <Modal isOpen={isModalOpen} title="Novo Gasto" onClose={() => setIsModalOpen(false)}>
+      {/* Modal de criação/edição de gasto — o mesmo form serve para os dois casos */}
+      <Modal isOpen={isModalOpen} title={editandoId ? 'Editar Gasto' : 'Novo Gasto'} onClose={fecharModal}>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="label-uppercase text-text-secondary block mb-2 text-xs">Categoria</label>
-            <input
-              type="text"
-              placeholder="Ex: Alimentação, Transporte"
-              value={formData.categoria}
-              onChange={(e) => setFormData({ ...formData, categoria: e.target.value })}
-              className="input-dark w-full px-4 py-3"
-              required
-            />
-          </div>
+          <Select
+            label="Categoria"
+            value={formData.categoria}
+            onChange={(e) => setFormData({ ...formData, categoria: e.target.value })}
+            required
+          >
+            <option value="" disabled>Selecione uma categoria</option>
+            {CATEGORIAS.map((cat) => (
+              <option key={cat.valor} value={cat.valor}>{cat.rotulo}</option>
+            ))}
+          </Select>
 
-          <div>
-            <label className="label-uppercase text-text-secondary block mb-2 text-xs">Valor</label>
-            <input
-              type="number"
-              step="0.01"
-              min="0.01"
-              placeholder="0,00"
-              value={formData.valor}
-              onChange={(e) => setFormData({ ...formData, valor: e.target.value })}
-              className="input-dark w-full px-4 py-3"
-              required
-            />
-          </div>
+          <Input
+            label="Valor"
+            type="number"
+            step="0.01"
+            min="0.01"
+            placeholder="0,00"
+            value={formData.valor}
+            onChange={(e) => setFormData({ ...formData, valor: e.target.value })}
+            required
+          />
 
-          <div>
-            <label className="label-uppercase text-text-secondary block mb-2 text-xs">Descrição</label>
-            <textarea
-              placeholder="Detalhes do gasto"
-              value={formData.descricao}
-              onChange={(e) => setFormData({ ...formData, descricao: e.target.value })}
-              className="input-dark w-full px-4 py-3 resize-none"
-              rows="3"
-            />
-          </div>
+          <Textarea
+            label="Descrição"
+            placeholder="Detalhes do gasto"
+            value={formData.descricao}
+            onChange={(e) => setFormData({ ...formData, descricao: e.target.value })}
+            rows="3"
+          />
 
-          <div>
-            <label className="label-uppercase text-text-secondary block mb-2 text-xs">Data</label>
-            <input
-              type="date"
-              value={formData.data}
-              onChange={(e) => setFormData({ ...formData, data: e.target.value })}
-              className="input-dark w-full px-4 py-3"
-              required
-            />
-          </div>
+          <Input
+            label="Data"
+            type="date"
+            value={formData.data}
+            onChange={(e) => setFormData({ ...formData, data: e.target.value })}
+            required
+          />
 
           <div className="flex gap-3 pt-4">
-            <button
-              type="button"
-              onClick={() => setIsModalOpen(false)}
-              className="flex-1 border border-border-dark text-text-secondary px-4 py-2 rounded hover:bg-surface"
-            >
+            <Button type="button" variant="outline" className="flex-1" onClick={fecharModal}>
               Cancelar
-            </button>
-            <button type="submit" className="btn-outlined-lg flex-1">
+            </Button>
+            <Button type="submit" className="flex-1">
               Salvar
-            </button>
+            </Button>
           </div>
         </form>
       </Modal>

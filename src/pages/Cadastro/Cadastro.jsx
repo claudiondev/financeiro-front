@@ -1,6 +1,11 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import api from '../../services/api'
+import Card from '../../components/ui/Card'
+import Input from '../../components/ui/Input'
+import Button from '../../components/ui/Button'
+import logoIcon from '../../assets/logo-icon.png'
+import logoFull from '../../assets/logo-full.png'
 
 export default function Cadastro() {
   const [email, setEmail] = useState('')
@@ -58,74 +63,83 @@ export default function Cadastro() {
   }
 
   return (
-    <div className="min-h-screen bg-dark flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        <div className="mb-12 text-center">
-          <h1 className="text-3xl font-bold text-text-primary mb-2">Meu Controle Financeiro</h1>
-          <p className="text-text-secondary text-sm">Crie sua conta gratuita</p>
+    <div className="min-h-screen flex bg-background">
+      {/* Painel de marca — só a partir de telas grandes */}
+      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-gradient-to-br from-primary-700 via-primary-600 to-accent-600 items-center justify-center p-12">
+        <div className="absolute -top-24 -left-24 w-96 h-96 bg-white opacity-10 rounded-full blur-3xl" />
+        <div className="absolute -bottom-32 -right-16 w-96 h-96 bg-accent-300 opacity-20 rounded-full blur-3xl" />
+        <div className="relative z-10 max-w-md text-white">
+          <div className="inline-block bg-white bg-opacity-10 backdrop-blur rounded-2xl p-4 mb-8">
+            <img src={logoIcon} alt="" className="w-16 h-16 object-contain drop-shadow-lg" />
+          </div>
+          <h1 className="text-4xl font-black leading-tight mb-4">
+            Comece a decidir com números, não com achismo
+          </h1>
+          <p className="text-primary-100 text-lg">
+            Cadastro gratuito. Leva menos de um minuto pra começar a organizar sua vida financeira.
+          </p>
         </div>
+      </div>
 
-        <div className="card-base p-8 space-y-6">
-          <h2 className="text-xl font-bold text-text-primary uppercase tracking-wider">Cadastro</h2>
+      {/* Formulário */}
+      <div className="flex-1 flex items-center justify-center p-4">
+        <div className="w-full max-w-md">
+          <div className="lg:hidden text-center mb-10">
+            <img src={logoFull} alt="Meu Controle Financeiro" className="h-20 mx-auto object-contain" />
+          </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="label-uppercase text-text-secondary block mb-2">Email</label>
-              <input
+          <Card className="p-8 space-y-6 shadow-lg">
+            <h2 className="text-xl font-bold text-text-primary">Crie sua conta</h2>
+
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <Input
+                id="email"
+                label="Email"
                 type="email"
                 placeholder="seu@email.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="input-dark w-full px-4 py-3"
                 required
               />
-            </div>
 
-            <div>
-              <label className="label-uppercase text-text-secondary block mb-2">Senha</label>
-              <input
+              <Input
+                id="senha"
+                label="Senha"
                 type="password"
                 placeholder="Crie uma senha (mín. 6 caracteres)"
                 value={senha}
                 onChange={(e) => setSenha(e.target.value)}
-                className="input-dark w-full px-4 py-3"
                 required
               />
-            </div>
 
-            <div>
-              <label className="label-uppercase text-text-secondary block mb-2">Confirmar Senha</label>
-              <input
+              <Input
+                id="repetirSenha"
+                label="Confirmar Senha"
                 type="password"
                 placeholder="Repita a senha"
                 value={repetirSenha}
                 onChange={(e) => setRepetirSenha(e.target.value)}
-                className="input-dark w-full px-4 py-3"
                 required
               />
+
+              {erro && (
+                <div className="bg-red-50 border border-negative border-opacity-30 text-negative text-sm p-3 rounded-lg">
+                  {erro}
+                </div>
+              )}
+
+              <Button type="submit" disabled={loading} className="w-full" size="lg">
+                {loading ? 'Cadastrando...' : 'Finalizar Cadastro'}
+              </Button>
+            </form>
+
+            <div className="text-center text-sm text-text-secondary">
+              Já tem uma conta?{' '}
+              <Link to="/login" className="text-accent-600 font-semibold hover:underline">
+                Fazer login
+              </Link>
             </div>
-
-            {erro && (
-              <div className="bg-negative bg-opacity-10 border border-negative border-opacity-30 text-negative text-sm p-3 rounded">
-                {erro}
-              </div>
-            )}
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="btn-outlined-lg w-full disabled:opacity-50"
-            >
-              {loading ? 'Cadastrando...' : 'Finalizar Cadastro'}
-            </button>
-          </form>
-
-          <div className="text-center text-sm text-text-secondary">
-            Já tem uma conta?{' '}
-            <Link to="/login" className="text-accent font-semibold hover:underline">
-              Fazer login
-            </Link>
-          </div>
+          </Card>
         </div>
       </div>
     </div>

@@ -1,7 +1,16 @@
 import { useState, useEffect } from 'react'
 import { BarChart, Bar, PieChart, Pie, Cell, Legend, ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts'
 import { Download } from 'lucide-react'
-import api from '../../services/api'
+import api, { extrairMensagemErro } from '../../services/api'
+import PageHeader from '../../components/ui/PageHeader'
+import Card from '../../components/ui/Card'
+import Button from '../../components/ui/Button'
+import Select from '../../components/ui/Select'
+import Badge from '../../components/ui/Badge'
+import ProgressBar from '../../components/ui/ProgressBar'
+import EmptyState from '../../components/ui/EmptyState'
+import PageSkeleton from '../../components/ui/Skeleton'
+import { rotuloCategoria, corHexCategoria } from '../../constants/categorias'
 
 export default function Relatorios() {
   const [relatorio, setRelatorio] = useState(null)
@@ -42,11 +51,11 @@ export default function Relatorios() {
       /*
        * Endpoint correto: /gastos/relatorio (não /gastos/categorias).
        *
-       * /gastos/categorias retorna apenas Map<String,Double> — não tem
+       * /gastos/categorias retorna apenas Map<String,BigDecimal> — não tem
        * totalEntradas, totalSaidas nem a estrutura de categoria com média e percentual.
        *
        * /gastos/relatorio retorna RelatorioMensalDTO com:
-       *   - categorias: List<CategoriaDTO> com nome, valor, percentual, media
+       *   - categorias: List<CategoriaDTO> com nome (enum), valor, percentual, media
        *   - totalEntradas
        *   - totalSaidas
        */
@@ -54,7 +63,7 @@ export default function Relatorios() {
       setRelatorio(response.data)
       setError('')
     } catch (err) {
-      setError('Erro ao carregar relatório')
+      setError(extrairMensagemErro(err, 'Erro ao carregar relatório'))
     } finally {
       setLoading(false)
     }
@@ -74,7 +83,7 @@ export default function Relatorios() {
     const csvContent = [
       headers.join(','),
       ...relatorio.categorias.map(cat => [
-        cat.nome,
+        rotuloCategoria(cat.nome),
         cat.valor.toFixed(2),
         cat.percentual.toFixed(2),
         cat.media.toFixed(2)
@@ -91,11 +100,7 @@ export default function Relatorios() {
   }
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center h-96">
-        <p className="text-text-secondary">Carregando...</p>
-      </div>
-    )
+    return <PageSkeleton />
   }
 
   /*
@@ -112,30 +117,26 @@ export default function Relatorios() {
   if (!relatorio) {
     return (
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold text-text-primary">Relatórios</h1>
-          <div>
-            <label className="label-uppercase text-text-secondary block mb-2 text-xs">Selecionar Mês</label>
-            <select
-              value={mesSelected}
-              onChange={(e) => setMesSelected(Number(e.target.value))}
-              className="input-dark px-4 py-3"
-            >
-              {meses.map(mes => (
-                <option key={mes.numero} value={mes.numero}>{mes.nome}</option>
-              ))}
-            </select>
-          </div>
-        </div>
+        <PageHeader title="Relatórios">
+          <Select
+            label="Selecionar Mês"
+            value={mesSelected}
+            onChange={(e) => setMesSelected(Number(e.target.value))}
+          >
+            {meses.map(mes => (
+              <option key={mes.numero} value={mes.numero}>{mes.nome}</option>
+            ))}
+          </Select>
+        </PageHeader>
 
         {error ? (
-          <div className="card-base border-negative border-opacity-30 p-4 text-negative text-sm">
+          <Card className="border-negative border-opacity-30 p-4 text-negative text-sm">
             {error}
-          </div>
+          </Card>
         ) : (
-          <div className="card-base p-8 text-center text-text-secondary">
+          <Card className="p-8 text-center text-text-secondary">
             Nenhum dado disponível para este período
-          </div>
+          </Card>
         )}
       </div>
     )
@@ -144,7 +145,8 @@ export default function Relatorios() {
   // Aqui chegamos somente quando relatorio !== null
 
   const chartDataPie = relatorio.categorias?.map(cat => ({
-    name: cat.nome,
+    categoria: cat.nome,
+    name: rotuloCategoria(cat.nome),
     value: Number(cat.valor)
   })) || []
 
@@ -153,49 +155,36 @@ export default function Relatorios() {
     { mes: 'Saídas', valor: Number(relatorio.totalSaidas || 0) }
   ]
 
-  const COLORS = ['#C084FC', '#F87171', '#10B981', '#3B82F6', '#F59E0B', '#8B5CF6', '#EC4899', '#06B6D4']
-
   // Total gasto no mês — soma das categorias para calcular percentual local
   const totalGasto = relatorio.categorias?.reduce((acc, cat) => acc + Number(cat.valor), 0) || 0
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-text-primary">Relatórios</h1>
-        <div className="flex gap-4 items-end">
-          <div>
-            <label className="label-uppercase text-text-secondary block mb-2 text-xs">Selecionar Mês</label>
-            <select
-              value={mesSelected}
-              onChange={(e) => setMesSelected(Number(e.target.value))}
-              className="input-dark px-4 py-3"
-            >
-              {meses.map(mes => (
-                <option key={mes.numero} value={mes.numero}>
-                  {mes.nome}
-                </option>
-              ))}
-            </select>
-          </div>
-          <button
-            onClick={handleExportCSV}
-            className="btn-outlined-lg inline-flex items-center gap-2"
-          >
-            <Download size={18} />
-            Exportar CSV
-          </button>
-        </div>
-      </div>
+      <PageHeader title="Relatórios">
+        <Select
+          label="Selecionar Mês"
+          value={mesSelected}
+          onChange={(e) => setMesSelected(Number(e.target.value))}
+        >
+          {meses.map(mes => (
+            <option key={mes.numero} value={mes.numero}>{mes.nome}</option>
+          ))}
+        </Select>
+        <Button onClick={handleExportCSV}>
+          <Download size={18} />
+          Exportar CSV
+        </Button>
+      </PageHeader>
 
       {/* Mostrado apenas se ocorrer erro após já ter dados (raro, mas possível) */}
       {error && (
-        <div className="card-base border-negative border-opacity-30 p-4 text-negative text-sm">
+        <Card className="border-negative border-opacity-30 p-4 text-negative text-sm">
           {error}
-        </div>
+        </Card>
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="card-base p-6">
+        <Card className="p-6">
           <h2 className="label-uppercase text-text-secondary mb-4">Gastos por Categoria</h2>
           {chartDataPie.length > 0 ? (
             <ResponsiveContainer width="100%" height={300}>
@@ -204,45 +193,43 @@ export default function Relatorios() {
                   data={chartDataPie}
                   cx="50%"
                   cy="50%"
-                  labelLine={false}
-                  label={({ name, value }) => `${name}: ${value}`}
-                  outerRadius={100}
-                  fill="#8884d8"
+                  outerRadius={90}
                   dataKey="value"
                 >
-                  {chartDataPie.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  {chartDataPie.map((entry) => (
+                    <Cell key={entry.categoria} fill={corHexCategoria(entry.categoria)} />
                   ))}
                 </Pie>
+                <Tooltip formatter={(value) => `R$ ${Number(value).toFixed(2)}`} />
                 <Legend />
               </PieChart>
             </ResponsiveContainer>
           ) : (
-            <p className="text-text-secondary text-center py-8">Nenhum dado disponível</p>
+            <EmptyState message="Nenhum dado disponível" />
           )}
-        </div>
+        </Card>
 
-        <div className="card-base p-6">
+        <Card className="p-6">
           <h2 className="label-uppercase text-text-secondary mb-4">Entradas vs Saídas</h2>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={chartDataBar}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#262626" />
-              <XAxis dataKey="mes" stroke="#737373" />
-              <YAxis stroke="#737373" />
+              <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
+              <XAxis dataKey="mes" stroke="#64748B" />
+              <YAxis stroke="#64748B" />
               <Tooltip
-                contentStyle={{ backgroundColor: '#161616', border: '1px solid #262626' }}
-                labelStyle={{ color: '#F5F5F5' }}
+                contentStyle={{ backgroundColor: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: 8 }}
+                labelStyle={{ color: '#0F172A' }}
               />
-              <Bar dataKey="valor" fill="#C084FC" />
+              <Bar dataKey="valor" fill="#1E3F72" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
-        </div>
+        </Card>
       </div>
 
-      <div className="card-base overflow-hidden">
+      <Card className="overflow-hidden">
         <table className="w-full">
           <thead>
-            <tr className="border-b border-border-dark bg-surface">
+            <tr className="border-b border-border bg-background">
               <th className="label-uppercase text-text-secondary text-left px-6 py-4">Categoria</th>
               <th className="label-uppercase text-text-secondary text-right px-6 py-4">Total Gasto</th>
               <th className="label-uppercase text-text-secondary text-right px-6 py-4">Participação %</th>
@@ -259,21 +246,16 @@ export default function Relatorios() {
                  */
                 const percentual = totalGasto > 0 ? (Number(categoria.valor) / totalGasto) * 100 : 0
                 return (
-                  <tr key={categoria.nome} className="border-b border-border-dark hover:bg-surface hover:bg-opacity-50">
+                  <tr key={categoria.nome} className="border-b border-border hover:bg-background transition-colors">
                     <td className="px-6 py-4">
-                      <span className="badge-category">{categoria.nome}</span>
+                      <Badge>{rotuloCategoria(categoria.nome)}</Badge>
                     </td>
                     <td className="px-6 py-4 text-right text-text-primary font-medium">
                       R$ {Number(categoria.valor).toFixed(2)}
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-2">
-                        <div className="w-20 h-2 bg-border-dark rounded overflow-hidden">
-                          <div
-                            className="h-full bg-accent transition-all"
-                            style={{ width: `${percentual}%` }}
-                          />
-                        </div>
+                        <ProgressBar value={percentual} className="w-20" />
                         <span className="text-text-primary font-medium text-sm">{percentual.toFixed(1)}%</span>
                       </div>
                     </td>
@@ -285,14 +267,14 @@ export default function Relatorios() {
               })
             ) : (
               <tr>
-                <td colSpan="4" className="px-6 py-8 text-center text-text-secondary">
-                  Nenhum dado disponível para este período
+                <td colSpan="4">
+                  <EmptyState message="Nenhum dado disponível para este período" />
                 </td>
               </tr>
             )}
           </tbody>
         </table>
-      </div>
+      </Card>
     </div>
   )
 }
