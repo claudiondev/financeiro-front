@@ -7,6 +7,7 @@ import Gastos from './pages/Gastos/Gastos.jsx'
 import Salarios from './pages/Salarios/Salarios.jsx'
 import Relatorios from './pages/Relatorios/Relatorios.jsx'
 import Metas from './pages/Metas/Metas.jsx'
+import Evolucao from './pages/Evolucao/Evolucao.jsx'
 
 function App() {
   return (
@@ -21,6 +22,7 @@ function App() {
           <Route path="/salarios" element={<Salarios />} />
           <Route path="/relatorios" element={<Relatorios />} />
           <Route path="/metas" element={<Metas />} />
+          <Route path="/evolucao" element={<Evolucao />} />
         </Route>
 
         <Route path="/" element={<Navigate to="/resumo" replace />} />
