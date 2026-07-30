@@ -8,11 +8,12 @@ import Button from '../../components/ui/Button'
 import Input from '../../components/ui/Input'
 import Select from '../../components/ui/Select'
 import Textarea from '../../components/ui/Textarea'
-import Badge from '../../components/ui/Badge'
+import SaldoDisplay from '../../components/ui/SaldoDisplay'
 import EmptyState from '../../components/ui/EmptyState'
 import PageSkeleton from '../../components/ui/Skeleton'
 import ConfirmDialog from '../../components/ui/ConfirmDialog'
-import { CATEGORIAS, rotuloCategoria } from '../../constants/categorias'
+import { CATEGORIAS, rotuloCategoria, corHexCategoria } from '../../constants/categorias'
+import { formatarDataCompleta } from '../../utils/data'
 
 const FORM_VAZIO = { categoria: '', valor: '', descricao: '', data: '' }
 
@@ -198,15 +199,22 @@ export default function Gastos() {
             {gastosExibidos.length > 0 ? (
               gastosExibidos.map((gasto) => (
                 <tr key={gasto.id} className="border-b border-border hover:bg-background transition-colors">
-                  <td className="px-6 py-4 text-text-secondary text-sm">{gasto.data}</td>
+                  <td className="px-6 py-4 text-text-secondary text-sm font-mono tabular-nums">{formatarDataCompleta(gasto.data)}</td>
                   <td className="px-6 py-4">
                     <p className="text-text-primary text-sm font-medium">{gasto.descricao || '-'}</p>
                   </td>
                   <td className="px-6 py-4">
-                    <Badge>{rotuloCategoria(gasto.categoria)}</Badge>
+                    <div className="flex items-center gap-2">
+                      <span
+                        className="w-2.5 h-2.5 flex-shrink-0"
+                        style={{ backgroundColor: corHexCategoria(gasto.categoria) }}
+                        aria-hidden="true"
+                      />
+                      <span className="text-sm text-text-primary">{rotuloCategoria(gasto.categoria)}</span>
+                    </div>
                   </td>
-                  <td className="px-6 py-4 text-right font-bold text-negative">
-                    R$ {Number(gasto.valor).toFixed(2)}
+                  <td className="px-6 py-4 text-right">
+                    <SaldoDisplay valor={Number(gasto.valor)} className="font-bold text-negative" />
                   </td>
                   <td className="px-6 py-4 text-center">
                     <div className="flex items-center justify-center gap-1">

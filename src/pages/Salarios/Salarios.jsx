@@ -7,9 +7,11 @@ import Card from '../../components/ui/Card'
 import Button from '../../components/ui/Button'
 import Input from '../../components/ui/Input'
 import Textarea from '../../components/ui/Textarea'
+import SaldoDisplay from '../../components/ui/SaldoDisplay'
 import EmptyState from '../../components/ui/EmptyState'
 import PageSkeleton from '../../components/ui/Skeleton'
 import ConfirmDialog from '../../components/ui/ConfirmDialog'
+import { formatarDataCompleta } from '../../utils/data'
 
 const FORM_VAZIO = { valor: '', comissao: '', adicional: '', descricao: '', data: '' }
 
@@ -132,7 +134,7 @@ export default function Salarios() {
 
       <Card className="p-6">
         <p className="label-uppercase text-text-secondary mb-2">Total Recebido no Mês</p>
-        <p className="text-4xl font-bold text-positive">R$ {totalMes.toFixed(2)}</p>
+        <SaldoDisplay valor={totalMes} className="text-4xl font-bold text-positive" />
       </Card>
 
       {error && (
@@ -160,21 +162,21 @@ export default function Salarios() {
                 const total = Number(salario.valor || 0) + Number(salario.comissao || 0) + Number(salario.adicional || 0)
                 return (
                   <tr key={salario.id} className="border-b border-border hover:bg-background transition-colors">
-                    <td className="px-6 py-4 text-text-secondary text-sm">{salario.data}</td>
+                    <td className="px-6 py-4 text-text-secondary text-sm font-mono tabular-nums">{formatarDataCompleta(salario.data)}</td>
                     <td className="px-6 py-4">
                       <p className="text-text-primary text-sm font-medium">{salario.descricao || '-'}</p>
                     </td>
-                    <td className="px-6 py-4 text-right text-text-primary font-medium">
-                      R$ {Number(salario.valor || 0).toFixed(2)}
+                    <td className="px-6 py-4 text-right">
+                      <SaldoDisplay valor={Number(salario.valor || 0)} className="text-text-primary font-medium" />
                     </td>
-                    <td className="px-6 py-4 text-right text-text-primary font-medium">
-                      R$ {Number(salario.comissao || 0).toFixed(2)}
+                    <td className="px-6 py-4 text-right">
+                      <SaldoDisplay valor={Number(salario.comissao || 0)} className="text-text-primary font-medium" />
                     </td>
-                    <td className="px-6 py-4 text-right text-text-primary font-medium">
-                      R$ {Number(salario.adicional || 0).toFixed(2)}
+                    <td className="px-6 py-4 text-right">
+                      <SaldoDisplay valor={Number(salario.adicional || 0)} className="text-text-primary font-medium" />
                     </td>
-                    <td className="px-6 py-4 text-right font-bold text-positive">
-                      R$ {total.toFixed(2)}
+                    <td className="px-6 py-4 text-right">
+                      <SaldoDisplay valor={total} className="font-bold text-positive" />
                     </td>
                     <td className="px-6 py-4 text-center">
                       <div className="flex items-center justify-center gap-1">

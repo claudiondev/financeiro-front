@@ -9,6 +9,7 @@ import Select from '../../components/ui/Select'
 import Input from '../../components/ui/Input'
 import Badge from '../../components/ui/Badge'
 import ProgressBar from '../../components/ui/ProgressBar'
+import SaldoDisplay from '../../components/ui/SaldoDisplay'
 import EmptyState from '../../components/ui/EmptyState'
 import PageSkeleton from '../../components/ui/Skeleton'
 import ConfirmDialog from '../../components/ui/ConfirmDialog'
@@ -146,15 +147,13 @@ export default function Metas() {
 
                 <div>
                   <div className="flex items-baseline justify-between mb-2">
-                    <span className="text-2xl font-bold text-text-primary">
-                      R$ {Number(orcamento.valorConsumido).toFixed(2)}
-                    </span>
-                    <span className="text-text-secondary text-sm">
-                      de R$ {Number(orcamento.limiteMensal).toFixed(2)}
+                    <SaldoDisplay valor={Number(orcamento.valorConsumido)} className="text-2xl font-bold text-text-primary" />
+                    <span className="text-text-secondary text-sm font-mono tabular-nums">
+                      de {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(orcamento.limiteMensal))}
                     </span>
                   </div>
                   <ProgressBar value={Number(orcamento.percentualConsumido)} barClassName={status.barra} />
-                  <p className="text-text-secondary text-xs mt-2">
+                  <p className="text-text-secondary text-xs mt-2 font-mono tabular-nums">
                     {Number(orcamento.percentualConsumido).toFixed(1)}% do limite usado este mês
                   </p>
                 </div>

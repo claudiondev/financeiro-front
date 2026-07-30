@@ -6,8 +6,9 @@ import PageHeader from '../../components/ui/PageHeader'
 import Card from '../../components/ui/Card'
 import Button from '../../components/ui/Button'
 import Select from '../../components/ui/Select'
-import Badge from '../../components/ui/Badge'
 import ProgressBar from '../../components/ui/ProgressBar'
+import SaldoDisplay from '../../components/ui/SaldoDisplay'
+import TooltipRecibo from '../../components/ui/TooltipRecibo'
 import EmptyState from '../../components/ui/EmptyState'
 import PageSkeleton from '../../components/ui/Skeleton'
 import { rotuloCategoria, corHexCategoria } from '../../constants/categorias'
@@ -200,7 +201,7 @@ export default function Relatorios() {
                     <Cell key={entry.categoria} fill={corHexCategoria(entry.categoria)} />
                   ))}
                 </Pie>
-                <Tooltip formatter={(value) => `R$ ${Number(value).toFixed(2)}`} />
+                <Tooltip content={<TooltipRecibo />} />
                 <Legend />
               </PieChart>
             </ResponsiveContainer>
@@ -214,13 +215,13 @@ export default function Relatorios() {
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={chartDataBar}>
               <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
-              <XAxis dataKey="mes" stroke="#64748B" />
-              <YAxis stroke="#64748B" />
-              <Tooltip
-                contentStyle={{ backgroundColor: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: 8 }}
-                labelStyle={{ color: '#0F172A' }}
-              />
-              <Bar dataKey="valor" fill="#1E3F72" radius={[4, 4, 0, 0]} />
+              <XAxis dataKey="mes" stroke="#64748B" style={{ fontFamily: '"IBM Plex Mono", monospace', fontSize: 12 }} />
+              <YAxis stroke="#64748B" style={{ fontFamily: '"IBM Plex Mono", monospace', fontSize: 12 }} />
+              <Tooltip content={<TooltipRecibo />} />
+              <Bar dataKey="valor" name="Total" radius={[4, 4, 0, 0]}>
+                <Cell fill="#16A34A" />
+                <Cell fill="#DC2626" />
+              </Bar>
             </BarChart>
           </ResponsiveContainer>
         </Card>
@@ -248,19 +249,26 @@ export default function Relatorios() {
                 return (
                   <tr key={categoria.nome} className="border-b border-border hover:bg-background transition-colors">
                     <td className="px-6 py-4">
-                      <Badge>{rotuloCategoria(categoria.nome)}</Badge>
+                      <div className="flex items-center gap-2">
+                        <span
+                          className="w-2.5 h-2.5 flex-shrink-0"
+                          style={{ backgroundColor: corHexCategoria(categoria.nome) }}
+                          aria-hidden="true"
+                        />
+                        <span className="text-sm text-text-primary">{rotuloCategoria(categoria.nome)}</span>
+                      </div>
                     </td>
-                    <td className="px-6 py-4 text-right text-text-primary font-medium">
-                      R$ {Number(categoria.valor).toFixed(2)}
+                    <td className="px-6 py-4 text-right">
+                      <SaldoDisplay valor={Number(categoria.valor)} className="text-text-primary font-medium" />
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-2">
                         <ProgressBar value={percentual} className="w-20" />
-                        <span className="text-text-primary font-medium text-sm">{percentual.toFixed(1)}%</span>
+                        <span className="text-text-primary font-medium text-sm font-mono tabular-nums">{percentual.toFixed(1)}%</span>
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-right text-text-primary font-medium">
-                      R$ {Number(categoria.media).toFixed(2)}
+                    <td className="px-6 py-4 text-right">
+                      <SaldoDisplay valor={Number(categoria.media)} className="text-text-primary font-medium" />
                     </td>
                   </tr>
                 )

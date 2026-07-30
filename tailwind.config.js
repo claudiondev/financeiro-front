@@ -51,6 +51,9 @@ export default {
       },
       fontFamily: {
         inter: ['Inter', 'sans-serif'],
+        // Reservada para dinheiro: valores, datas e percentuais — nunca para texto corrido.
+        // Mono alinha dígito com dígito, como uma coluna de extrato bancário.
+        mono: ['"IBM Plex Mono"', 'ui-monospace', 'monospace'],
       },
       borderRadius: {
         DEFAULT: '8px',

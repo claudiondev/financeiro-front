@@ -5,7 +5,8 @@ import PageHeader from '../../components/ui/PageHeader'
 import Card from '../../components/ui/Card'
 import Select from '../../components/ui/Select'
 import StatCard from '../../components/ui/StatCard'
-import EmptyState from '../../components/ui/EmptyState'
+import SaldoDisplay from '../../components/ui/SaldoDisplay'
+import TooltipRecibo from '../../components/ui/TooltipRecibo'
 import PageSkeleton from '../../components/ui/Skeleton'
 
 const NOME_MES_ABREVIADO = [
@@ -86,11 +87,11 @@ export default function Evolucao() {
       <PageHeader title="Evolução">{seletorPeriodo}</PageHeader>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <StatCard label="Entradas no período" value={`R$ ${totalEntradas.toFixed(2)}`} valueClassName="text-positive" />
-        <StatCard label="Saídas no período" value={`R$ ${totalSaidas.toFixed(2)}`} valueClassName="text-negative" />
+        <StatCard label="Entradas no período" value={<SaldoDisplay valor={totalEntradas} />} valueClassName="text-positive" />
+        <StatCard label="Saídas no período" value={<SaldoDisplay valor={totalSaidas} />} valueClassName="text-negative" />
         <StatCard
           label="Saldo do período"
-          value={`R$ ${saldoPeriodo.toFixed(2)}`}
+          value={<SaldoDisplay valor={saldoPeriodo} />}
           valueClassName={saldoPeriodo >= 0 ? 'text-positive' : 'text-negative'}
         />
       </div>
@@ -100,13 +101,9 @@ export default function Evolucao() {
         <ResponsiveContainer width="100%" height={350}>
           <LineChart data={chartData} margin={{ right: 24 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
-            <XAxis dataKey="label" stroke="#64748B" />
-            <YAxis stroke="#64748B" />
-            <Tooltip
-              contentStyle={{ backgroundColor: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: 8 }}
-              labelStyle={{ color: '#0F172A' }}
-              formatter={(value) => `R$ ${Number(value).toFixed(2)}`}
-            />
+            <XAxis dataKey="label" stroke="#64748B" style={{ fontFamily: '"IBM Plex Mono", monospace', fontSize: 12 }} />
+            <YAxis stroke="#64748B" style={{ fontFamily: '"IBM Plex Mono", monospace', fontSize: 12 }} />
+            <Tooltip content={<TooltipRecibo />} />
             <Legend />
             <Line type="monotone" dataKey="entradas" name="Entradas" stroke="#16A34A" strokeWidth={2} dot={{ r: 3 }} />
             <Line type="monotone" dataKey="saidas" name="Saídas" stroke="#DC2626" strokeWidth={2} dot={{ r: 3 }} />
