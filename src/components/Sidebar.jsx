@@ -1,5 +1,5 @@
 import { NavLink, useNavigate } from 'react-router-dom'
-import { LogOut, Home, Wallet, FileText, Zap, Target, TrendingUp, Repeat, Pencil } from 'lucide-react'
+import { LogOut, Home, Wallet, FileText, Zap, Target, TrendingUp, Repeat, Pencil, X } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import api, { extrairMensagemErro } from '../services/api'
 import Modal from './Modal'
@@ -7,7 +7,7 @@ import Input from './ui/Input'
 import Button from './ui/Button'
 import logoIcon from '../assets/logo-icon.png'
 
-export default function Sidebar() {
+export default function Sidebar({ isOpen, onClose }) {
   const navigate = useNavigate()
   const [usuario, setUsuario] = useState(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -64,10 +64,13 @@ export default function Sidebar() {
   ]
 
   return (
-    <aside className="fixed left-0 top-0 h-screen w-64 bg-surface border-r border-border flex flex-col">
+    <aside className={`fixed left-0 top-0 h-screen w-64 bg-surface border-r border-border flex flex-col z-40 transition-transform duration-200 ${isOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0`}>
       {/* Logo e Nome de Usuário */}
       <div className="p-6 border-b border-border">
         <div className="flex items-center gap-3 mb-4">
+          <button className="md:hidden absolute top-4 right-4 text-text-secondary" onClick={onClose}>
+            <X size={20} />
+          </button>
           <img src={logoIcon} alt="Meu Controle Financeiro" className="w-10 h-10 object-contain" />
           <div>
             <h1 className="text-sm font-black text-primary-700 uppercase leading-tight">Meu Controle</h1>
