@@ -13,12 +13,14 @@ import EmptyState from '../../components/ui/EmptyState'
 import PageSkeleton from '../../components/ui/Skeleton'
 import ConfirmDialog from '../../components/ui/ConfirmDialog'
 import { CATEGORIAS, rotuloCategoria, corHexCategoria } from '../../constants/categorias'
+import { FORMAS_PAGAMENTO, FORMA_QUE_PARCELA, rotuloFormaPagamento } from '../../constants/formasPagamento'
 import { formatarDataCompleta } from '../../utils/data'
 
-const FORM_VAZIO = { categoria: '', valor: '', descricao: '', data: '' }
+const FORM_VAZIO = { categoria: '', valor: '', descricao: '', data: '', formaPagamento: '', totalParcelas: '' }
 
 export default function Gastos() {
   const [gastos, setGastos] = useState([])
+  const [parcelamentos, setParcelamentos] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -63,6 +65,21 @@ export default function Gastos() {
     setCategoriaFilter('')
   }, [mesFilter])
 
+  useEffect(() => {
+    fetchParcelamentos()
+  }, [])
+
+  // Compras parceladas em aberto — independente do mês filtrado, é uma visão do
+  // que ainda está "rolando". Falha silenciosamente: é complemento, não o dado central.
+  const fetchParcelamentos = async () => {
+    try {
+      const response = await api.get('/gastos/parcelamentos')
+      setParcelamentos(response.data)
+    } catch {
+      setParcelamentos([])
+    }
+  }
+
   const fetchGastos = async () => {
     setLoading(true)
     try {
@@ -88,13 +105,20 @@ export default function Gastos() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     try {
+      // Campos opcionais vazios viram null — string vazia quebraria o enum no backend
+      const payload = {
+        ...formData,
+        formaPagamento: formData.formaPagamento || null,
+        totalParcelas: podeParcelar ? Number(formData.totalParcelas) || null : null,
+      }
+
       if (editandoId) {
-        await api.put(`/gastos/${editandoId}`, formData)
+        await api.put(`/gastos/${editandoId}`, payload)
       } else {
-        await api.post('/gastos', formData)
+        await api.post('/gastos', payload)
       }
       fecharModal()
-      await fetchGastos()
+      await Promise.all([fetchGastos(), fetchParcelamentos()])
     } catch (err) {
       setError(extrairMensagemErro(err, 'Erro ao salvar gasto'))
     }
@@ -113,6 +137,9 @@ export default function Gastos() {
       valor: gasto.valor,
       descricao: gasto.descricao || '',
       data: gasto.data,
+      formaPagamento: gasto.formaPagamento || '',
+      // Parcelamento não é editável depois de criado — editar afeta só esta parcela
+      totalParcelas: '',
     })
     setIsModalOpen(true)
   }
@@ -128,7 +155,7 @@ export default function Gastos() {
     try {
       await api.delete(`/gastos/${idParaDeletar}`)
       setIdParaDeletar(null)
-      await fetchGastos()
+      await Promise.all([fetchGastos(), fetchParcelamentos()])
     } catch (err) {
       setIdParaDeletar(null)
       setError(extrairMensagemErro(err, 'Erro ao deletar gasto'))
@@ -140,6 +167,9 @@ export default function Gastos() {
   const gastosExibidos = categoriaFilter
     ? gastos.filter((g) => g.categoria === categoriaFilter)
     : gastos
+
+  // Parcelar só faz sentido no crédito (mesma regra validada no backend)
+  const podeParcelar = formData.formaPagamento === FORMA_QUE_PARCELA
 
   if (loading) {
     return <PageSkeleton />
@@ -153,6 +183,35 @@ export default function Gastos() {
           Novo Gasto
         </Button>
       </PageHeader>
+
+      {parcelamentos.length > 0 && (
+        <Card className="p-6">
+          <h2 className="label-uppercase text-text-secondary mb-1">Parcelamentos em aberto</h2>
+          <div className="divide-y divide-border">
+            {parcelamentos.map((p) => (
+              <div key={p.grupoParcelamento} className="flex items-center gap-3 py-3">
+                <span
+                  className="w-2.5 h-2.5 flex-shrink-0"
+                  style={{ backgroundColor: corHexCategoria(p.categoria) }}
+                  aria-hidden="true"
+                />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm text-text-primary font-medium truncate">{p.descricao}</p>
+                  <p className="text-xs text-text-secondary">
+                    <span className="font-mono tabular-nums">{p.parcelasPagas}/{p.totalParcelas}</span>
+                    {' pagas · termina em '}
+                    <span className="font-mono tabular-nums">{formatarDataCompleta(p.ultimaParcela)}</span>
+                  </p>
+                </div>
+                <div className="text-right flex-shrink-0">
+                  <SaldoDisplay valor={Number(p.valorRestante)} className="text-sm font-semibold text-text-primary" />
+                  <p className="text-xs text-text-secondary">restante</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
 
       {/* Filtros — mês consulta o servidor, categoria filtra localmente */}
       <div className="flex gap-4 flex-wrap">
@@ -191,6 +250,7 @@ export default function Gastos() {
               <th className="label-uppercase text-text-secondary text-left px-6 py-4">Data</th>
               <th className="label-uppercase text-text-secondary text-left px-6 py-4">Descrição</th>
               <th className="label-uppercase text-text-secondary text-left px-6 py-4">Categoria</th>
+              <th className="label-uppercase text-text-secondary text-left px-6 py-4">Pagamento</th>
               <th className="label-uppercase text-text-secondary text-right px-6 py-4">Valor</th>
               <th className="label-uppercase text-text-secondary text-center px-6 py-4">Ações</th>
             </tr>
@@ -212,6 +272,14 @@ export default function Gastos() {
                       />
                       <span className="text-sm text-text-primary">{rotuloCategoria(gasto.categoria)}</span>
                     </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <span className="text-sm text-text-secondary">{rotuloFormaPagamento(gasto.formaPagamento)}</span>
+                    {gasto.totalParcelas > 1 && (
+                      <span className="ml-2 text-xs font-mono tabular-nums text-text-secondary bg-background border border-border px-1.5 py-0.5 rounded">
+                        {gasto.numeroParcela}/{gasto.totalParcelas}
+                      </span>
+                    )}
                   </td>
                   <td className="px-6 py-4 text-right">
                     <SaldoDisplay valor={Number(gasto.valor)} className="font-bold text-negative" />
@@ -238,7 +306,7 @@ export default function Gastos() {
               ))
             ) : (
               <tr>
-                <td colSpan="5">
+                <td colSpan="6">
                   <EmptyState message="Nenhum gasto registrado para este período" />
                 </td>
               </tr>
@@ -295,6 +363,35 @@ export default function Gastos() {
             onChange={(e) => setFormData({ ...formData, data: e.target.value })}
             required
           />
+
+          <Select
+            label="Forma de pagamento (opcional)"
+            value={formData.formaPagamento}
+            onChange={(e) => setFormData({
+              ...formData,
+              formaPagamento: e.target.value,
+              // Trocar pra uma forma que não parcela limpa o campo de parcelas
+              totalParcelas: e.target.value === FORMA_QUE_PARCELA ? formData.totalParcelas : '',
+            })}
+          >
+            <option value="">Não informar</option>
+            {FORMAS_PAGAMENTO.map((forma) => (
+              <option key={forma.valor} value={forma.valor}>{forma.rotulo}</option>
+            ))}
+          </Select>
+
+          {/* Parcelamento só existe no crédito, e não é editável depois de criado */}
+          {podeParcelar && !editandoId && (
+            <Input
+              label="Parcelas"
+              type="number"
+              min="1"
+              max="48"
+              placeholder="1"
+              value={formData.totalParcelas}
+              onChange={(e) => setFormData({ ...formData, totalParcelas: e.target.value })}
+            />
+          )}
 
           <div className="flex gap-3 pt-4">
             <Button type="button" variant="outline" className="flex-1" onClick={fecharModal}>
