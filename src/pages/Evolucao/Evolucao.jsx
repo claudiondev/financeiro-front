@@ -105,9 +105,9 @@ export default function Evolucao() {
             <YAxis stroke="#64748B" style={{ fontFamily: '"IBM Plex Mono", monospace', fontSize: 12 }} />
             <Tooltip content={<TooltipRecibo />} />
             <Legend />
-            <Line type="monotone" dataKey="entradas" name="Entradas" stroke="#16A34A" strokeWidth={2} dot={{ r: 3 }} />
-            <Line type="monotone" dataKey="saidas" name="Saídas" stroke="#DC2626" strokeWidth={2} dot={{ r: 3 }} />
-            <Line type="monotone" dataKey="saldo" name="Saldo" stroke="#1E3F72" strokeWidth={2} dot={{ r: 3 }} />
+            <Line type="monotone" dataKey="entradas" name="Entradas" stroke="#16A34A" strokeWidth={2} dot={{ r: 3 }} isAnimationActive={false} />
+            <Line type="monotone" dataKey="saidas" name="Saídas" stroke="#DC2626" strokeWidth={2} dot={{ r: 3 }} isAnimationActive={false} />
+            <Line type="monotone" dataKey="saldo" name="Saldo" stroke="#1E3F72" strokeWidth={2} dot={{ r: 3 }} isAnimationActive={false} />
           </LineChart>
         </ResponsiveContainer>
       </Card>

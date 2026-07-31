@@ -204,7 +204,7 @@ export default function Relatorios() {
               <XAxis dataKey="mes" stroke="#64748B" style={{ fontFamily: '"IBM Plex Mono", monospace', fontSize: 12 }} />
               <YAxis stroke="#64748B" style={{ fontFamily: '"IBM Plex Mono", monospace', fontSize: 12 }} />
               <Tooltip content={<TooltipRecibo />} />
-              <Bar dataKey="valor" name="Total" radius={[4, 4, 0, 0]}>
+              <Bar dataKey="valor" name="Total" radius={[4, 4, 0, 0]} isAnimationActive={false}>
                 <Cell fill="#16A34A" />
                 <Cell fill="#DC2626" />
               </Bar>
