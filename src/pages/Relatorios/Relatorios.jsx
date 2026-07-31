@@ -12,28 +12,13 @@ import TooltipRecibo from '../../components/ui/TooltipRecibo'
 import EmptyState from '../../components/ui/EmptyState'
 import PageSkeleton from '../../components/ui/Skeleton'
 import { rotuloCategoria, corHexCategoria } from '../../constants/categorias'
+import { MESES } from '../../utils/data'
 
 export default function Relatorios() {
   const [relatorio, setRelatorio] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [mesSelected, setMesSelected] = useState(new Date().getMonth() + 1)
-
-  // Meses com nome legível para o usuário e número para a query string
-  const meses = [
-    { nome: 'Janeiro', numero: 1 },
-    { nome: 'Fevereiro', numero: 2 },
-    { nome: 'Março', numero: 3 },
-    { nome: 'Abril', numero: 4 },
-    { nome: 'Maio', numero: 5 },
-    { nome: 'Junho', numero: 6 },
-    { nome: 'Julho', numero: 7 },
-    { nome: 'Agosto', numero: 8 },
-    { nome: 'Setembro', numero: 9 },
-    { nome: 'Outubro', numero: 10 },
-    { nome: 'Novembro', numero: 11 },
-    { nome: 'Dezembro', numero: 12 },
-  ]
 
   /*
    * Recarrega o relatório sempre que o mês selecionado mudar.
@@ -124,7 +109,7 @@ export default function Relatorios() {
             value={mesSelected}
             onChange={(e) => setMesSelected(Number(e.target.value))}
           >
-            {meses.map(mes => (
+            {MESES.map(mes => (
               <option key={mes.numero} value={mes.numero}>{mes.nome}</option>
             ))}
           </Select>
@@ -167,7 +152,7 @@ export default function Relatorios() {
           value={mesSelected}
           onChange={(e) => setMesSelected(Number(e.target.value))}
         >
-          {meses.map(mes => (
+          {MESES.map(mes => (
             <option key={mes.numero} value={mes.numero}>{mes.nome}</option>
           ))}
         </Select>
@@ -196,6 +181,7 @@ export default function Relatorios() {
                   cy="50%"
                   outerRadius={90}
                   dataKey="value"
+                  isAnimationActive={false}
                 >
                   {chartDataPie.map((entry) => (
                     <Cell key={entry.categoria} fill={corHexCategoria(entry.categoria)} />
@@ -228,6 +214,7 @@ export default function Relatorios() {
       </div>
 
       <Card className="overflow-hidden">
+        <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
             <tr className="border-b border-border bg-background">
@@ -282,6 +269,7 @@ export default function Relatorios() {
             )}
           </tbody>
         </table>
+        </div>
       </Card>
     </div>
   )

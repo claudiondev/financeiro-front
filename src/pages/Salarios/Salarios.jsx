@@ -144,6 +144,7 @@ export default function Salarios() {
       )}
 
       <Card className="overflow-hidden">
+        <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
             <tr className="border-b border-border bg-background">
@@ -208,6 +209,7 @@ export default function Salarios() {
             )}
           </tbody>
         </table>
+        </div>
       </Card>
 
       <ConfirmDialog

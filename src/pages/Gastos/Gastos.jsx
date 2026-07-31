@@ -14,7 +14,7 @@ import PageSkeleton from '../../components/ui/Skeleton'
 import ConfirmDialog from '../../components/ui/ConfirmDialog'
 import { CATEGORIAS, rotuloCategoria, corHexCategoria } from '../../constants/categorias'
 import { FORMAS_PAGAMENTO, FORMA_QUE_PARCELA, rotuloFormaPagamento } from '../../constants/formasPagamento'
-import { formatarDataCompleta } from '../../utils/data'
+import { formatarDataCompleta, MESES } from '../../utils/data'
 
 const FORM_VAZIO = { categoria: '', valor: '', descricao: '', data: '', formaPagamento: '', totalParcelas: '' }
 
@@ -215,15 +215,16 @@ export default function Gastos() {
 
       {/* Filtros — mês consulta o servidor, categoria filtra localmente */}
       <div className="flex gap-4 flex-wrap">
-        <Input
+        <Select
           label="Mês"
-          type="number"
-          min="1"
-          max="12"
           value={mesFilter}
           onChange={(e) => setMesFilter(Number(e.target.value))}
-          className="w-20"
-        />
+          className="w-40"
+        >
+          {MESES.map((mes) => (
+            <option key={mes.numero} value={mes.numero}>{mes.nome}</option>
+          ))}
+        </Select>
         <Select
           label="Categoria"
           value={categoriaFilter}
@@ -244,6 +245,7 @@ export default function Gastos() {
       )}
 
       <Card className="overflow-hidden">
+        <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
             <tr className="border-b border-border bg-background">
@@ -313,6 +315,7 @@ export default function Gastos() {
             )}
           </tbody>
         </table>
+        </div>
       </Card>
 
       <ConfirmDialog
