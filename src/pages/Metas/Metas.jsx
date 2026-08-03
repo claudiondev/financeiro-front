@@ -32,6 +32,8 @@ export default function Metas() {
   // null = criando uma meta nova; objeto = editando uma meta existente (categoria fica travada)
   const [editando, setEditando] = useState(null)
   const [idParaDeletar, setIdParaDeletar] = useState(null)
+  // Evita duplo submit (duplo clique ou duplo Enter) — desabilita o botão até a requisição terminar
+  const [submitting, setSubmitting] = useState(false)
 
   useEffect(() => {
     fetchOrcamentos()
@@ -53,6 +55,8 @@ export default function Metas() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    if (submitting) return
+    setSubmitting(true)
     try {
       // POST /orcamentos é upsert por categoria — mesma chamada serve para criar e editar
       await api.post('/orcamentos', formData)
@@ -60,6 +64,8 @@ export default function Metas() {
       await fetchOrcamentos()
     } catch (err) {
       setError(extrairMensagemErro(err, 'Erro ao salvar meta'))
+    } finally {
+      setSubmitting(false)
     }
   }
 
@@ -201,11 +207,11 @@ export default function Metas() {
           />
 
           <div className="flex gap-3 pt-4">
-            <Button type="button" variant="outline" className="flex-1" onClick={fecharModal}>
+            <Button type="button" variant="outline" className="flex-1" onClick={fecharModal} disabled={submitting}>
               Cancelar
             </Button>
-            <Button type="submit" className="flex-1">
-              Salvar
+            <Button type="submit" className="flex-1" disabled={submitting}>
+              {submitting ? 'Salvando...' : 'Salvar'}
             </Button>
           </div>
         </form>

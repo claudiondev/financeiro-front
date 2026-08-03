@@ -33,6 +33,8 @@ export default function ContasFixas() {
   // null = criando uma conta nova; id da conta = editando uma conta existente
   const [editandoId, setEditandoId] = useState(null)
   const [idParaDeletar, setIdParaDeletar] = useState(null)
+  // Evita duplo submit (duplo clique ou duplo Enter) — desabilita o botão até a requisição terminar
+  const [submitting, setSubmitting] = useState(false)
 
   useEffect(() => {
     fetchContas()
@@ -53,6 +55,8 @@ export default function ContasFixas() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    if (submitting) return
+    setSubmitting(true)
     try {
       if (editandoId) {
         await api.put(`/gastos-fixos/${editandoId}`, formData)
@@ -63,6 +67,8 @@ export default function ContasFixas() {
       await fetchContas()
     } catch (err) {
       setError(extrairMensagemErro(err, 'Erro ao salvar conta fixa'))
+    } finally {
+      setSubmitting(false)
     }
   }
 
@@ -264,11 +270,11 @@ export default function ContasFixas() {
           />
 
           <div className="flex gap-3 pt-4">
-            <Button type="button" variant="outline" className="flex-1" onClick={fecharModal}>
+            <Button type="button" variant="outline" className="flex-1" onClick={fecharModal} disabled={submitting}>
               Cancelar
             </Button>
-            <Button type="submit" className="flex-1">
-              Salvar
+            <Button type="submit" className="flex-1" disabled={submitting}>
+              {submitting ? 'Salvando...' : 'Salvar'}
             </Button>
           </div>
         </form>

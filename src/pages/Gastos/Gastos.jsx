@@ -27,6 +27,8 @@ export default function Gastos() {
   const [formData, setFormData] = useState(FORM_VAZIO)
   // null = criando um gasto novo; id do gasto = editando um gasto existente
   const [editandoId, setEditandoId] = useState(null)
+  // Evita duplo submit (duplo clique ou duplo Enter) — desabilita o botão até a requisição terminar
+  const [submitting, setSubmitting] = useState(false)
 
   // Filtros de busca
   const [mesFilter, setMesFilter] = useState(new Date().getMonth() + 1)
@@ -107,6 +109,8 @@ export default function Gastos() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    if (submitting) return
+    setSubmitting(true)
     try {
       // Campos opcionais vazios viram null — string vazia quebraria o enum no backend
       const payload = {
@@ -125,6 +129,8 @@ export default function Gastos() {
       await Promise.all([fetchGastos(), fetchParcelamentos()])
     } catch (err) {
       setError(extrairMensagemErro(err, 'Erro ao salvar gasto'))
+    } finally {
+      setSubmitting(false)
     }
   }
 
@@ -415,11 +421,11 @@ export default function Gastos() {
           )}
 
           <div className="flex gap-3 pt-4">
-            <Button type="button" variant="outline" className="flex-1" onClick={fecharModal}>
+            <Button type="button" variant="outline" className="flex-1" onClick={fecharModal} disabled={submitting}>
               Cancelar
             </Button>
-            <Button type="submit" className="flex-1">
-              Salvar
+            <Button type="submit" className="flex-1" disabled={submitting}>
+              {submitting ? 'Salvando...' : 'Salvar'}
             </Button>
           </div>
         </form>

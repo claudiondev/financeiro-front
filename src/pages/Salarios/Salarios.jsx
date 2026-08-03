@@ -24,6 +24,8 @@ export default function Salarios() {
   const [formData, setFormData] = useState(FORM_VAZIO)
   // null = criando uma entrada nova; id do salário = editando uma entrada existente
   const [editandoId, setEditandoId] = useState(null)
+  // Evita duplo submit (duplo clique ou duplo Enter) — desabilita o botão até a requisição terminar
+  const [submitting, setSubmitting] = useState(false)
 
   /*
    * Estado para confirmação de exclusão sem window.confirm().
@@ -69,6 +71,8 @@ export default function Salarios() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    if (submitting) return
+    setSubmitting(true)
     try {
       if (editandoId) {
         await api.put(`/salario/${editandoId}`, formData)
@@ -79,6 +83,8 @@ export default function Salarios() {
       await fetchSalarios()
     } catch (err) {
       setError(extrairMensagemErro(err, 'Erro ao salvar entrada'))
+    } finally {
+      setSubmitting(false)
     }
   }
 
@@ -291,11 +297,11 @@ export default function Salarios() {
           />
 
           <div className="flex gap-3 pt-4">
-            <Button type="button" variant="outline" className="flex-1" onClick={fecharModal}>
+            <Button type="button" variant="outline" className="flex-1" onClick={fecharModal} disabled={submitting}>
               Cancelar
             </Button>
-            <Button type="submit" className="flex-1">
-              Salvar
+            <Button type="submit" className="flex-1" disabled={submitting}>
+              {submitting ? 'Salvando...' : 'Salvar'}
             </Button>
           </div>
         </form>
