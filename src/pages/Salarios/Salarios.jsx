@@ -6,12 +6,13 @@ import PageHeader from '../../components/ui/PageHeader'
 import Card from '../../components/ui/Card'
 import Button from '../../components/ui/Button'
 import Input from '../../components/ui/Input'
+import Select from '../../components/ui/Select'
 import Textarea from '../../components/ui/Textarea'
 import SaldoDisplay from '../../components/ui/SaldoDisplay'
 import EmptyState from '../../components/ui/EmptyState'
 import PageSkeleton from '../../components/ui/Skeleton'
 import ConfirmDialog from '../../components/ui/ConfirmDialog'
-import { formatarDataCompleta } from '../../utils/data'
+import { formatarDataCompleta, MESES } from '../../utils/data'
 
 const FORM_VAZIO = { valor: '', comissao: '', adicional: '', descricao: '', data: '' }
 
@@ -35,20 +36,28 @@ export default function Salarios() {
    */
   const [idParaDeletar, setIdParaDeletar] = useState(null)
 
+  // Mesmo padrão de Gastos.jsx: mês atual por padrão, meses anteriores ficam só no histórico
+  const [mesFilter, setMesFilter] = useState(new Date().getMonth() + 1)
+
   useEffect(() => {
     fetchSalarios()
-  }, [])
+  }, [mesFilter])
 
   /*
-   * Busca os salários do usuário autenticado.
+   * Busca os salários do usuário autenticado, filtrados pelo mês selecionado.
    *
-   * O endpoint correto é GET /salario (singular), conforme mapeado em
-   * SalarioController com @RequestMapping("/salario").
-   * Usar /salarios (plural) resultava em 404 — esse era o bug original.
+   * O endpoint correto é GET /salario/filtrar (singular "salario"), conforme
+   * mapeado em SalarioController com @RequestMapping("/salario").
    */
   const fetchSalarios = async () => {
+    setLoading(true)
     try {
-      const response = await api.get('/salario')
+      const params = new URLSearchParams()
+      params.append('mes', mesFilter)
+      // O ano atual é implícito — pode ser parametrizado futuramente
+      params.append('ano', new Date().getFullYear())
+
+      const response = await api.get(`/salario/filtrar?${params.toString()}`)
       setSalarios(response.data)
       setError('')
     } catch (err) {
@@ -132,6 +141,17 @@ export default function Salarios() {
         </Button>
       </PageHeader>
 
+      <Select
+        label="Mês"
+        value={mesFilter}
+        onChange={(e) => setMesFilter(Number(e.target.value))}
+        className="w-40"
+      >
+        {MESES.map((mes) => (
+          <option key={mes.numero} value={mes.numero}>{mes.nome}</option>
+        ))}
+      </Select>
+
       <Card className="p-6">
         <p className="label-uppercase text-text-secondary mb-2">Total Recebido no Mês</p>
         <SaldoDisplay valor={totalMes} className="text-4xl font-bold text-positive" />
@@ -203,7 +223,7 @@ export default function Salarios() {
             ) : (
               <tr>
                 <td colSpan="7">
-                  <EmptyState message="Nenhuma entrada registrada" />
+                  <EmptyState message="Nenhuma entrada registrada para este mês" />
                 </td>
               </tr>
             )}
