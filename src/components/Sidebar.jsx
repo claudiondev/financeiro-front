@@ -1,5 +1,5 @@
 import { NavLink, useNavigate } from 'react-router-dom'
-import { LogOut, Home, Wallet, FileText, Zap, Target, TrendingUp, Repeat, Pencil, X } from 'lucide-react'
+import { LogOut, Home, Wallet, FileText, Zap, Target, TrendingUp, Repeat, Pencil, X, Lightbulb } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import api, { extrairMensagemErro } from '../services/api'
 import Modal from './Modal'
@@ -60,6 +60,7 @@ export default function Sidebar({ isOpen, onClose }) {
     { name: 'Contas Fixas', path: '/contas-fixas', icon: Repeat },
     { name: 'Metas', path: '/metas', icon: Target },
     { name: 'Evolução', path: '/evolucao', icon: TrendingUp },
+    { name: 'Assistente', path: '/assistente', icon: Lightbulb },
     { name: 'Relatórios', path: '/relatorios', icon: FileText },
   ]
 

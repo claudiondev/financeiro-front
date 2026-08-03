@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Trash2, Plus, Pencil } from 'lucide-react'
+import { Trash2, Plus, Pencil, AlertTriangle, X } from 'lucide-react'
 import Modal from '../../components/Modal'
 import api, { extrairMensagemErro } from '../../services/api'
 import PageHeader from '../../components/ui/PageHeader'
@@ -45,6 +45,9 @@ export default function Gastos() {
    * deleção é executada e o estado é resetado para null (fecha o modal).
    */
   const [idParaDeletar, setIdParaDeletar] = useState(null)
+
+  // Aviso não bloqueante do Assistente quando o gasto criado estoura/aproxima o orçamento da categoria
+  const [avisoOrcamento, setAvisoOrcamento] = useState(null)
 
   /*
    * Busca os gastos no servidor aplicando os filtros de mês e categoria.
@@ -115,7 +118,8 @@ export default function Gastos() {
       if (editandoId) {
         await api.put(`/gastos/${editandoId}`, payload)
       } else {
-        await api.post('/gastos', payload)
+        const response = await api.post('/gastos', payload)
+        setAvisoOrcamento(response.data.avisoOrcamento || null)
       }
       fecharModal()
       await Promise.all([fetchGastos(), fetchParcelamentos()])
@@ -183,6 +187,20 @@ export default function Gastos() {
           Novo Gasto
         </Button>
       </PageHeader>
+
+      {avisoOrcamento && (
+        <div className={`flex items-start gap-3 text-sm font-medium rounded-lg px-4 py-3 border ${
+          avisoOrcamento.severidade === 'CRITICO'
+            ? 'text-negative bg-red-50 border-negative border-opacity-30'
+            : 'text-warning bg-orange-50 border-warning border-opacity-30'
+        }`}>
+          <AlertTriangle size={18} className="flex-shrink-0 mt-0.5" />
+          <span className="flex-1">{avisoOrcamento.mensagem}</span>
+          <button onClick={() => setAvisoOrcamento(null)} className="flex-shrink-0 hover:opacity-70" title="Dispensar">
+            <X size={16} />
+          </button>
+        </div>
+      )}
 
       {parcelamentos.length > 0 && (
         <Card className="p-6">

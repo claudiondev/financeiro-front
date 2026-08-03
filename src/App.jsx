@@ -9,6 +9,7 @@ import ContasFixas from './pages/ContasFixas/ContasFixas.jsx'
 import Relatorios from './pages/Relatorios/Relatorios.jsx'
 import Metas from './pages/Metas/Metas.jsx'
 import Evolucao from './pages/Evolucao/Evolucao.jsx'
+import Assistente from './pages/Assistente/Assistente.jsx'
 
 function App() {
   return (
@@ -25,6 +26,7 @@ function App() {
           <Route path="/relatorios" element={<Relatorios />} />
           <Route path="/metas" element={<Metas />} />
           <Route path="/evolucao" element={<Evolucao />} />
+          <Route path="/assistente" element={<Assistente />} />
         </Route>
 
         <Route path="/" element={<Navigate to="/resumo" replace />} />
