@@ -42,11 +42,13 @@ export default function Gastos() {
    * bloqueante. Alguns browsers modernos bloqueiam esse diálogo em certos
    * contextos (iframes, extensões). Além disso, não pode ser estilizado.
    *
-   * Solução: armazena o ID do gasto a ser deletado em "idParaDeletar".
-   * Quando não nulo, o Modal de confirmação é exibido. Ao confirmar, a
-   * deleção é executada e o estado é resetado para null (fecha o modal).
+   * Solução: armazena o gasto a ser deletado em "gastoParaDeletar" (o objeto
+   * inteiro, não só o id — precisamos saber se é parcela pra escolher o
+   * endpoint certo e o texto de confirmação). Quando não nulo, o Modal de
+   * confirmação é exibido. Ao confirmar, a deleção é executada e o estado é
+   * resetado para null (fecha o modal).
    */
-  const [idParaDeletar, setIdParaDeletar] = useState(null)
+  const [gastoParaDeletar, setGastoParaDeletar] = useState(null)
 
   // Aviso não bloqueante do Assistente quando o gasto criado estoura/aproxima o orçamento da categoria
   const [avisoOrcamento, setAvisoOrcamento] = useState(null)
@@ -161,13 +163,19 @@ export default function Gastos() {
   }
 
   const handleDelete = async () => {
-    if (!idParaDeletar) return
+    if (!gastoParaDeletar) return
+    // Parcela: apaga a compra parcelada inteira (única forma permitida pelo backend) —
+    // uma parcela isolada não pode ser removida sem deixar as demais inconsistentes.
+    const ehParcelado = gastoParaDeletar.totalParcelas > 1
+    const url = ehParcelado
+      ? `/gastos/${gastoParaDeletar.id}/parcelamento`
+      : `/gastos/${gastoParaDeletar.id}`
     try {
-      await api.delete(`/gastos/${idParaDeletar}`)
-      setIdParaDeletar(null)
+      await api.delete(url)
+      setGastoParaDeletar(null)
       await Promise.all([fetchGastos(), fetchParcelamentos()])
     } catch (err) {
-      setIdParaDeletar(null)
+      setGastoParaDeletar(null)
       setError(extrairMensagemErro(err, 'Erro ao deletar gasto'))
     }
   }
@@ -320,9 +328,9 @@ export default function Gastos() {
                         <Pencil size={16} />
                       </button>
                       <button
-                        onClick={() => setIdParaDeletar(gasto.id)}
+                        onClick={() => setGastoParaDeletar(gasto)}
                         className="text-negative hover:bg-red-50 p-2 rounded transition-colors"
-                        title="Deletar"
+                        title={gasto.totalParcelas > 1 ? 'Deletar compra parcelada inteira' : 'Deletar'}
                       >
                         <Trash2 size={16} />
                       </button>
@@ -343,9 +351,13 @@ export default function Gastos() {
       </Card>
 
       <ConfirmDialog
-        isOpen={idParaDeletar !== null}
-        message="Tem certeza que deseja excluir este gasto? Esta ação não pode ser desfeita."
-        onCancel={() => setIdParaDeletar(null)}
+        isOpen={gastoParaDeletar !== null}
+        message={
+          gastoParaDeletar?.totalParcelas > 1
+            ? `Tem certeza que deseja excluir esta compra parcelada? As ${gastoParaDeletar.totalParcelas} parcelas serão apagadas. Esta ação não pode ser desfeita.`
+            : 'Tem certeza que deseja excluir este gasto? Esta ação não pode ser desfeita.'
+        }
+        onCancel={() => setGastoParaDeletar(null)}
         onConfirm={handleDelete}
       />
 
