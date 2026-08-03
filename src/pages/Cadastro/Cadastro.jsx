@@ -24,8 +24,9 @@ export default function Cadastro() {
       return
     }
 
-    if (senha.length < 6) {
-      setErro('A senha deve ter no mínimo 6 caracteres')
+    // Mesma regra validada no backend (RegistrarRequest) — mantém as duas em sincronia
+    if (!/^(?=.*[A-Z])(?=.*\d).{8,}$/.test(senha)) {
+      setErro('A senha deve ter pelo menos 8 caracteres, incluindo uma letra maiúscula e um número')
       return
     }
 
@@ -84,7 +85,7 @@ export default function Cadastro() {
           id="senha"
           label="Senha"
           type="password"
-          placeholder="Crie uma senha (mín. 6 caracteres)"
+          placeholder="Mín. 8 caracteres, 1 maiúscula e 1 número"
           value={senha}
           onChange={(e) => setSenha(e.target.value)}
           required
