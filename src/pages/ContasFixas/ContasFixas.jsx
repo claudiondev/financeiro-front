@@ -23,7 +23,7 @@ const STATUS_INFO = {
   PENDENTE: { label: 'Pendente', badge: 'neutral' },
 }
 
-const FORM_VAZIO = { categoria: '', valor: '', descricao: '', diaVencimento: '', dataInicio: '' }
+const FORM_VAZIO = { categoria: '', valor: '', descricao: '', diaVencimento: '', dataInicio: '', totalParcelas: '' }
 
 export default function ContasFixas() {
   const { usuario } = useUsuario()
@@ -61,10 +61,12 @@ export default function ContasFixas() {
     if (submitting) return
     setSubmitting(true)
     try {
+      // Campo opcional vazio vira null — string vazia quebraria o parse de Integer no backend
+      const payload = { ...formData, totalParcelas: formData.totalParcelas || null }
       if (editandoId) {
-        await api.put(`/gastos-fixos/${editandoId}`, formData)
+        await api.put(`/gastos-fixos/${editandoId}`, payload)
       } else {
-        await api.post('/gastos-fixos', formData)
+        await api.post('/gastos-fixos', payload)
       }
       fecharModal()
       await fetchContas()
@@ -121,6 +123,7 @@ export default function ContasFixas() {
       descricao: conta.descricao,
       diaVencimento: conta.diaVencimento,
       dataInicio: conta.dataInicio,
+      totalParcelas: conta.totalParcelas || '',
     })
     setIsModalOpen(true)
   }
@@ -162,6 +165,11 @@ export default function ContasFixas() {
                     <div className="flex items-center gap-2 flex-wrap">
                       <Badge variant={status.badge}>{status.label}</Badge>
                       {!conta.ativo && <Badge>Pausada</Badge>}
+                      {conta.totalParcelas && (
+                        <Badge>
+                          <span className="font-mono tabular-nums">{conta.parcelasPagas}/{conta.totalParcelas}</span> parcelas
+                        </Badge>
+                      )}
                     </div>
                   </div>
                   <div className="flex items-center gap-1 flex-shrink-0">
@@ -198,6 +206,11 @@ export default function ContasFixas() {
                   <p className="text-text-secondary text-xs mt-1">
                     vence dia {conta.diaVencimento} · <span className="font-mono tabular-nums">{formatarDataCompleta(conta.dataVencimentoMesAtual)}</span>
                   </p>
+                  {conta.totalParcelas && (
+                    <p className="text-text-secondary text-xs mt-1">
+                      restam <SaldoDisplay valor={(conta.totalParcelas - conta.parcelasPagas) * Number(conta.valor)} className="text-xs" />
+                    </p>
+                  )}
                 </div>
 
                 {conta.statusMesAtual !== 'PAGO' && conta.gastoDoMesId && (
@@ -280,6 +293,20 @@ export default function ContasFixas() {
             onChange={(e) => setFormData({ ...formData, dataInicio: e.target.value })}
             required
           />
+
+          <div>
+            <Input
+              label="Número de parcelas (opcional)"
+              type="number"
+              min="1"
+              placeholder="Ex: 48"
+              value={formData.totalParcelas}
+              onChange={(e) => setFormData({ ...formData, totalParcelas: e.target.value })}
+            />
+            <p className="text-text-secondary text-xs mt-1">
+              Deixe em branco para conta recorrente sem fim (aluguel, assinatura). Preencha pra financiamentos.
+            </p>
+          </div>
 
           <div className="flex gap-3 pt-4">
             <Button type="button" variant="outline" className="flex-1" onClick={fecharModal} disabled={submitting}>
