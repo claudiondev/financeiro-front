@@ -1,4 +1,4 @@
-import { Utensils, Car, Home, Music, HeartPulse, GraduationCap, MoreHorizontal } from 'lucide-react'
+import { Utensils, Car, Home, Music, HeartPulse, GraduationCap, PiggyBank, MoreHorizontal } from 'lucide-react'
 
 /**
  * Fonte única de verdade para categoria de gasto: rótulo em português, ícone,
@@ -12,6 +12,7 @@ export const CATEGORIAS = [
   { valor: 'LAZER', rotulo: 'Lazer', badge: 'badge-pink', hex: '#EC4899', icone: Music },
   { valor: 'SAUDE', rotulo: 'Saúde', badge: 'badge-cyan', hex: '#06B6D4', icone: HeartPulse },
   { valor: 'EDUCACAO', rotulo: 'Educação', badge: 'badge-green', hex: '#16A34A', icone: GraduationCap },
+  { valor: 'POUPANCA', rotulo: 'Poupança', badge: 'badge-teal', hex: '#0D9488', icone: PiggyBank },
   { valor: 'OUTROS', rotulo: 'Outros', badge: 'text-secondary', hex: '#64748B', icone: MoreHorizontal },
 ]
 

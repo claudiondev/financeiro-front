@@ -11,6 +11,7 @@ import Metas from './pages/Metas/Metas.jsx'
 import Evolucao from './pages/Evolucao/Evolucao.jsx'
 import Assistente from './pages/Assistente/Assistente.jsx'
 import Importacao from './pages/Importacao/Importacao.jsx'
+import Poupanca from './pages/Poupanca/Poupanca.jsx'
 
 function App() {
   return (
@@ -29,6 +30,7 @@ function App() {
           <Route path="/evolucao" element={<Evolucao />} />
           <Route path="/assistente" element={<Assistente />} />
           <Route path="/importar" element={<Importacao />} />
+          <Route path="/poupanca" element={<Poupanca />} />
         </Route>
 
         <Route path="/" element={<Navigate to="/resumo" replace />} />
