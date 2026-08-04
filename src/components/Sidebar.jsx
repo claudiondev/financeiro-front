@@ -1,31 +1,19 @@
 import { NavLink, useNavigate } from 'react-router-dom'
 import { LogOut, Home, Wallet, FileText, Zap, Target, TrendingUp, Repeat, Pencil, X, Lightbulb } from 'lucide-react'
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import api, { extrairMensagemErro } from '../services/api'
 import Modal from './Modal'
 import Input from './ui/Input'
 import Button from './ui/Button'
 import logoIcon from '../assets/logo-icon.png'
+import { useUsuario } from '../context/UsuarioContext'
 
 export default function Sidebar({ isOpen, onClose }) {
   const navigate = useNavigate()
-  const [usuario, setUsuario] = useState(null)
+  const { usuario, recarregarUsuario } = useUsuario()
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [nomeForm, setNomeForm] = useState('')
   const [erro, setErro] = useState('')
-
-  useEffect(() => {
-    fetchUsuario()
-  }, [])
-
-  const fetchUsuario = async () => {
-    try {
-      const response = await api.get('/usuario/me')
-      setUsuario(response.data)
-    } catch {
-      // Sem bloqueio: o resto da tela funciona normalmente mesmo se isso falhar
-    }
-  }
 
   const handleLogout = () => {
     localStorage.removeItem('token')
@@ -41,8 +29,8 @@ export default function Sidebar({ isOpen, onClose }) {
   const handleSalvarNome = async (e) => {
     e.preventDefault()
     try {
-      const response = await api.put('/usuario/perfil', { nome: nomeForm || null })
-      setUsuario(response.data)
+      await api.put('/usuario/perfil', { nome: nomeForm || null })
+      await recarregarUsuario()
       setIsModalOpen(false)
     } catch (err) {
       setErro(extrairMensagemErro(err, 'Erro ao salvar nome'))
@@ -78,7 +66,12 @@ export default function Sidebar({ isOpen, onClose }) {
             <p className="text-xs font-bold text-accent-600 uppercase tracking-wide">Financeiro</p>
           </div>
         </div>
-        {nomeExibido && (
+        {nomeExibido && usuario?.demo && (
+          <p className="mt-3 text-xs text-text-secondary truncate">
+            Olá, <span className="text-text-primary font-medium">{nomeExibido}</span>
+          </p>
+        )}
+        {nomeExibido && !usuario?.demo && (
           <button
             onClick={abrirEdicaoDeNome}
             className="flex items-center gap-1.5 mt-3 text-left group"

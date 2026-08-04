@@ -14,6 +14,7 @@ import PageSkeleton from '../../components/ui/Skeleton'
 import ConfirmDialog from '../../components/ui/ConfirmDialog'
 import { CATEGORIAS, rotuloCategoria } from '../../constants/categorias'
 import { formatarDataCompleta } from '../../utils/data'
+import { useUsuario } from '../../context/UsuarioContext'
 
 const STATUS_INFO = {
   PAGO: { label: 'Pago', badge: 'accent' },
@@ -25,6 +26,8 @@ const STATUS_INFO = {
 const FORM_VAZIO = { categoria: '', valor: '', descricao: '', diaVencimento: '', dataInicio: '' }
 
 export default function ContasFixas() {
+  const { usuario } = useUsuario()
+  const modoDemo = usuario?.demo
   const [contas, setContas] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -135,7 +138,7 @@ export default function ContasFixas() {
   return (
     <div className="space-y-6">
       <PageHeader title="Contas Fixas">
-        <Button onClick={abrirCriacao}>
+        <Button onClick={abrirCriacao} disabled={modoDemo} title={modoDemo ? 'Desabilitado no modo demo' : undefined}>
           <Plus size={18} />
           Nova Conta Fixa
         </Button>
@@ -164,22 +167,25 @@ export default function ContasFixas() {
                   <div className="flex items-center gap-1 flex-shrink-0">
                     <button
                       onClick={() => handlePausarOuReativar(conta)}
-                      className="text-text-secondary hover:text-primary hover:bg-primary-50 p-2 rounded transition-colors"
-                      title={conta.ativo ? 'Pausar' : 'Reativar'}
+                      disabled={modoDemo}
+                      className="text-text-secondary hover:text-primary hover:bg-primary-50 p-2 rounded transition-colors disabled:opacity-40 disabled:hover:bg-transparent disabled:cursor-not-allowed"
+                      title={modoDemo ? 'Desabilitado no modo demo' : (conta.ativo ? 'Pausar' : 'Reativar')}
                     >
                       {conta.ativo ? <Pause size={16} /> : <Play size={16} />}
                     </button>
                     <button
                       onClick={() => abrirEdicao(conta)}
-                      className="text-text-secondary hover:text-primary hover:bg-primary-50 p-2 rounded transition-colors"
-                      title="Editar"
+                      disabled={modoDemo}
+                      className="text-text-secondary hover:text-primary hover:bg-primary-50 p-2 rounded transition-colors disabled:opacity-40 disabled:hover:bg-transparent disabled:cursor-not-allowed"
+                      title={modoDemo ? 'Desabilitado no modo demo' : 'Editar'}
                     >
                       <Pencil size={16} />
                     </button>
                     <button
                       onClick={() => setIdParaDeletar(conta.id)}
-                      className="text-negative hover:bg-red-50 p-2 rounded transition-colors"
-                      title="Remover"
+                      disabled={modoDemo}
+                      className="text-negative hover:bg-red-50 p-2 rounded transition-colors disabled:opacity-40 disabled:hover:bg-transparent disabled:cursor-not-allowed"
+                      title={modoDemo ? 'Desabilitado no modo demo' : 'Remover'}
                     >
                       <Trash2 size={16} />
                     </button>
@@ -195,7 +201,13 @@ export default function ContasFixas() {
                 </div>
 
                 {conta.statusMesAtual !== 'PAGO' && conta.gastoDoMesId && (
-                  <Button variant="outline" className="w-full" onClick={() => handleMarcarComoPago(conta.gastoDoMesId)}>
+                  <Button
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => handleMarcarComoPago(conta.gastoDoMesId)}
+                    disabled={modoDemo}
+                    title={modoDemo ? 'Desabilitado no modo demo' : undefined}
+                  >
                     <CheckCircle2 size={16} />
                     Marcar como pago
                   </Button>

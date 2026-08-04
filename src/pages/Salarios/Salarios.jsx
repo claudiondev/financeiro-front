@@ -13,10 +13,13 @@ import EmptyState from '../../components/ui/EmptyState'
 import PageSkeleton from '../../components/ui/Skeleton'
 import ConfirmDialog from '../../components/ui/ConfirmDialog'
 import { formatarDataCompleta, MESES } from '../../utils/data'
+import { useUsuario } from '../../context/UsuarioContext'
 
 const FORM_VAZIO = { valor: '', comissao: '', adicional: '', descricao: '', data: '' }
 
 export default function Salarios() {
+  const { usuario } = useUsuario()
+  const modoDemo = usuario?.demo
   const [salarios, setSalarios] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -141,7 +144,7 @@ export default function Salarios() {
   return (
     <div className="space-y-6">
       <PageHeader title="Salários e Entradas">
-        <Button onClick={abrirCriacao}>
+        <Button onClick={abrirCriacao} disabled={modoDemo} title={modoDemo ? 'Desabilitado no modo demo' : undefined}>
           <Plus size={18} />
           Nova Entrada
         </Button>
@@ -209,15 +212,17 @@ export default function Salarios() {
                       <div className="flex items-center justify-center gap-1">
                         <button
                           onClick={() => abrirEdicao(salario)}
-                          className="text-text-secondary hover:text-primary hover:bg-primary-50 p-2 rounded transition-colors"
-                          title="Editar"
+                          disabled={modoDemo}
+                          className="text-text-secondary hover:text-primary hover:bg-primary-50 p-2 rounded transition-colors disabled:opacity-40 disabled:hover:bg-transparent disabled:cursor-not-allowed"
+                          title={modoDemo ? 'Desabilitado no modo demo' : 'Editar'}
                         >
                           <Pencil size={16} />
                         </button>
                         <button
                           onClick={() => setIdParaDeletar(salario.id)}
-                          className="text-negative hover:bg-red-50 p-2 rounded transition-colors"
-                          title="Deletar"
+                          disabled={modoDemo}
+                          className="text-negative hover:bg-red-50 p-2 rounded transition-colors disabled:opacity-40 disabled:hover:bg-transparent disabled:cursor-not-allowed"
+                          title={modoDemo ? 'Desabilitado no modo demo' : 'Deletar'}
                         >
                           <Trash2 size={16} />
                         </button>

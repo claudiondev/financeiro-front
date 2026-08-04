@@ -15,10 +15,13 @@ import ConfirmDialog from '../../components/ui/ConfirmDialog'
 import { CATEGORIAS, rotuloCategoria, corHexCategoria } from '../../constants/categorias'
 import { FORMAS_PAGAMENTO, FORMA_QUE_PARCELA, rotuloFormaPagamento } from '../../constants/formasPagamento'
 import { formatarDataCompleta, MESES } from '../../utils/data'
+import { useUsuario } from '../../context/UsuarioContext'
 
 const FORM_VAZIO = { categoria: '', valor: '', descricao: '', data: '', formaPagamento: '', totalParcelas: '' }
 
 export default function Gastos() {
+  const { usuario } = useUsuario()
+  const modoDemo = usuario?.demo
   const [gastos, setGastos] = useState([])
   const [parcelamentos, setParcelamentos] = useState([])
   const [loading, setLoading] = useState(true)
@@ -196,7 +199,7 @@ export default function Gastos() {
   return (
     <div className="space-y-6">
       <PageHeader title="Gastos">
-        <Button onClick={abrirCriacao}>
+        <Button onClick={abrirCriacao} disabled={modoDemo} title={modoDemo ? 'Desabilitado no modo demo' : undefined}>
           <Plus size={18} />
           Novo Gasto
         </Button>
@@ -322,15 +325,17 @@ export default function Gastos() {
                     <div className="flex items-center justify-center gap-1">
                       <button
                         onClick={() => abrirEdicao(gasto)}
-                        className="text-text-secondary hover:text-primary hover:bg-primary-50 p-2 rounded transition-colors"
-                        title="Editar"
+                        disabled={modoDemo}
+                        className="text-text-secondary hover:text-primary hover:bg-primary-50 p-2 rounded transition-colors disabled:opacity-40 disabled:hover:bg-transparent disabled:cursor-not-allowed"
+                        title={modoDemo ? 'Desabilitado no modo demo' : 'Editar'}
                       >
                         <Pencil size={16} />
                       </button>
                       <button
                         onClick={() => setGastoParaDeletar(gasto)}
-                        className="text-negative hover:bg-red-50 p-2 rounded transition-colors"
-                        title={gasto.totalParcelas > 1 ? 'Deletar compra parcelada inteira' : 'Deletar'}
+                        disabled={modoDemo}
+                        className="text-negative hover:bg-red-50 p-2 rounded transition-colors disabled:opacity-40 disabled:hover:bg-transparent disabled:cursor-not-allowed"
+                        title={modoDemo ? 'Desabilitado no modo demo' : (gasto.totalParcelas > 1 ? 'Deletar compra parcelada inteira' : 'Deletar')}
                       >
                         <Trash2 size={16} />
                       </button>

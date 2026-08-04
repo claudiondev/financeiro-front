@@ -14,6 +14,7 @@ import EmptyState from '../../components/ui/EmptyState'
 import PageSkeleton from '../../components/ui/Skeleton'
 import ConfirmDialog from '../../components/ui/ConfirmDialog'
 import { CATEGORIAS, rotuloCategoria } from '../../constants/categorias'
+import { useUsuario } from '../../context/UsuarioContext'
 
 const STATUS_INFO = {
   DENTRO_DO_LIMITE: { label: 'Dentro do limite', badge: 'accent', barra: 'bg-accent' },
@@ -24,6 +25,8 @@ const STATUS_INFO = {
 const FORM_VAZIO = { categoria: '', limiteMensal: '' }
 
 export default function Metas() {
+  const { usuario } = useUsuario()
+  const modoDemo = usuario?.demo
   const [orcamentos, setOrcamentos] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -110,7 +113,11 @@ export default function Metas() {
   return (
     <div className="space-y-6">
       <PageHeader title="Metas de Orçamento">
-        <Button onClick={abrirCriacao} disabled={categoriasDisponiveis.length === 0}>
+        <Button
+          onClick={abrirCriacao}
+          disabled={modoDemo || categoriasDisponiveis.length === 0}
+          title={modoDemo ? 'Desabilitado no modo demo' : undefined}
+        >
           <Plus size={18} />
           Nova Meta
         </Button>
@@ -136,15 +143,17 @@ export default function Metas() {
                   <div className="flex items-center gap-1">
                     <button
                       onClick={() => abrirEdicao(orcamento)}
-                      className="text-text-secondary hover:text-primary hover:bg-primary-50 p-2 rounded transition-colors"
-                      title="Editar"
+                      disabled={modoDemo}
+                      className="text-text-secondary hover:text-primary hover:bg-primary-50 p-2 rounded transition-colors disabled:opacity-40 disabled:hover:bg-transparent disabled:cursor-not-allowed"
+                      title={modoDemo ? 'Desabilitado no modo demo' : 'Editar'}
                     >
                       <Pencil size={16} />
                     </button>
                     <button
                       onClick={() => setIdParaDeletar(orcamento.id)}
-                      className="text-negative hover:bg-red-50 p-2 rounded transition-colors"
-                      title="Remover"
+                      disabled={modoDemo}
+                      className="text-negative hover:bg-red-50 p-2 rounded transition-colors disabled:opacity-40 disabled:hover:bg-transparent disabled:cursor-not-allowed"
+                      title={modoDemo ? 'Desabilitado no modo demo' : 'Remover'}
                     >
                       <Trash2 size={16} />
                     </button>

@@ -10,6 +10,7 @@ export default function Login() {
   const [senha, setSenha] = useState('')
   const [erro, setErro] = useState('')
   const [loading, setLoading] = useState(false)
+  const [carregandoDemo, setCarregandoDemo] = useState(false)
   const navigate = useNavigate()
 
   const handleSubmit = async (e) => {
@@ -35,6 +36,21 @@ export default function Login() {
         : 'Não foi possível fazer login. Verifique suas credenciais.')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleVerDemo = async () => {
+    setErro('')
+    setCarregandoDemo(true)
+
+    try {
+      const response = await api.post('/auth/demo')
+      localStorage.setItem('token', response.data)
+      navigate('/resumo')
+    } catch {
+      setErro('Não foi possível abrir a demo agora. Tente novamente em instantes.')
+    } finally {
+      setCarregandoDemo(false)
     }
   }
 
@@ -76,6 +92,23 @@ export default function Login() {
           {loading ? 'Entrando...' : 'Entrar'}
         </Button>
       </form>
+
+      <div className="flex items-center gap-3 text-xs text-text-secondary">
+        <div className="h-px flex-1 bg-border" />
+        ou
+        <div className="h-px flex-1 bg-border" />
+      </div>
+
+      <Button
+        type="button"
+        variant="outline"
+        onClick={handleVerDemo}
+        disabled={carregandoDemo}
+        className="w-full"
+        size="lg"
+      >
+        {carregandoDemo ? 'Abrindo demo...' : 'Ver demo'}
+      </Button>
 
       <div className="text-center text-sm text-text-secondary">
         Não tem uma conta?{' '}

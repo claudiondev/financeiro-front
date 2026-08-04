@@ -1,9 +1,22 @@
 import { Outlet, useNavigate, useLocation } from 'react-router-dom'
 import { useEffect, useState } from 'react'
-import { Menu } from 'lucide-react'
+import { Menu, Eye } from 'lucide-react'
 import Sidebar from './Sidebar'
+import { UsuarioProvider, useUsuario } from '../context/UsuarioContext'
 
-export default function Layout() {
+function BannerDemo() {
+  const { usuario } = useUsuario()
+  if (!usuario?.demo) return null
+
+  return (
+    <div className="mb-4 flex items-center gap-2 rounded-lg border border-accent-600 border-opacity-30 bg-accent-50 px-4 py-2.5 text-sm text-accent-800">
+      <Eye size={16} className="flex-shrink-0" />
+      Você está no modo demo — dados de exemplo, somente leitura.
+    </div>
+  )
+}
+
+function LayoutInterno() {
   const navigate = useNavigate()
   const location = useLocation()
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -38,9 +51,18 @@ export default function Layout() {
           >
             <Menu size={22} />
           </button>
+          <BannerDemo />
           <Outlet />
         </div>
       </main>
     </div>
+  )
+}
+
+export default function Layout() {
+  return (
+    <UsuarioProvider>
+      <LayoutInterno />
+    </UsuarioProvider>
   )
 }
