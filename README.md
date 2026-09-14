@@ -5,7 +5,7 @@
 ![Vite](https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white)
 ![Vercel](https://img.shields.io/badge/Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white)
 
-> Interface para controle financeiro pessoal — gastos, salários, contas fixas, metas de orçamento e um assistente que avisa quando algo foge do planejado. Conectada a uma API REST Spring Boot com autenticação JWT.
+> Interface para controle financeiro pessoal — gastos, salários, contas fixas, financiamentos, metas de orçamento e de poupança, importação de extrato bancário e um assistente que avisa quando algo foge do planejado. Conectada a uma API REST Spring Boot com autenticação JWT.
 
 ---
 
@@ -23,7 +23,7 @@ Clique em **"Ver demo"** na tela de login. Você entra direto numa conta com dad
 
 ## 📋 Sobre o Projeto
 
-Front-end do Meu Controle Financeiro — uma aplicação full stack para gerenciar gastos, salários, orçamentos e contas recorrentes, com um assistente financeiro que gera avisos e dicas com base nos seus próprios dados.
+Front-end do Meu Controle Financeiro — uma aplicação full stack para gerenciar gastos, salários, orçamentos, contas recorrentes/financiamentos e metas de poupança, com um assistente financeiro que gera avisos e dicas com base nos seus próprios dados.
 
 A interface consome uma API REST Spring Boot com autenticação JWT, e segue um sistema visual próprio ("ledger/recibo") construído em cima da identidade da logo do projeto: azul-marinho e verde, tipografia monoespaçada reservada só para valores monetários e datas.
 
@@ -36,8 +36,10 @@ A interface consome uma API REST Spring Boot com autenticação JWT, e segue um 
 - 📊 **Resumo** — saldo do mês em destaque, gasto por categoria, extrato recente, aviso de contas fixas vencendo
 - 💸 **Gastos** — CRUD completo com categoria, forma de pagamento e parcelamento no cartão de crédito (mostra "2/5" na tabela, seção dedicada de parcelamentos em aberto), filtro por mês e categoria
 - 💼 **Salários** — CRUD com valor, comissão e adicional, filtro por mês
-- 🔁 **Contas Fixas** — cadastro de contas recorrentes (aluguel, assinaturas), badge de status (pago/vencendo/atrasado/pendente), pausar/reativar, marcar como pago
+- 🔁 **Contas Fixas e Financiamentos** — cadastro de contas recorrentes (aluguel, assinaturas) ou com número de parcelas definido (financiamentos), badge de status (pago/vencendo/atrasado/pendente), badge "16/48 parcelas" com saldo devedor restante quando tem fim, pausar/reativar, marcar como pago
 - 🎯 **Metas de Orçamento** — limite mensal por categoria com barra de progresso e status colorido
+- 🐷 **Poupança** — metas de economia com valor-alvo e prazo opcional, progresso calculado a partir dos aportes, registrar aporte em um modal dedicado (vira um gasto de categoria Poupança automaticamente)
+- 📥 **Importar Extrato (OFX)** — upload do arquivo do banco, tela de revisão com categoria editável por transação antes de confirmar, duplicata já identificada e desmarcada
 - 📈 **Evolução** — gráfico de linha com entradas, saídas e saldo dos últimos 3/6/12 meses
 - 🤖 **Assistente Financeiro** — cards de insight (orçamento estourado, ritmo de gastos, categoria em alta, dicas) priorizados por severidade
 - 📁 **Relatórios** — gráficos de pizza e barra, exportação em CSV
@@ -112,7 +114,8 @@ src/
 ├── pages/           # Uma pasta por tela
 │   ├── Login/ Cadastro/
 │   ├── Resumo/ Gastos/ Salarios/ ContasFixas/
-│   ├── Metas/ Evolucao/ Assistente/
+│   ├── Metas/ Poupanca/ Evolucao/ Assistente/
+│   ├── Importacao/
 │   └── Relatorios/
 ├── services/        # Axios configurado com interceptors de JWT e tratamento de erro
 └── utils/           # Formatação de data e lista de meses compartilhada
