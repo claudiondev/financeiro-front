@@ -5,7 +5,7 @@
 ![Vite](https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white)
 ![Vercel](https://img.shields.io/badge/Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white)
 
-> Interface para controle financeiro pessoal — gastos, salários, contas fixas, financiamentos, metas de orçamento e de poupança, importação de extrato bancário e um assistente que avisa quando algo foge do planejado. Conectada a uma API REST Spring Boot com autenticação JWT.
+> Interface para controle financeiro pessoal — gastos, salários, contas fixas, financiamentos, metas de orçamento e de poupança, importação de extrato bancário e um assistente com insights e chat financeiro opcional. Conectada a uma API REST Spring Boot com autenticação JWT.
 
 ---
 
@@ -17,7 +17,7 @@
 
 ### 🎭 Quer ver funcionando sem criar conta?
 
-Clique em **"Ver demo"** na tela de login. Você entra direto numa conta com dados de exemplo já preenchidos (gastos, metas, contas fixas, insights do assistente) — sem cadastro e sem senha. É uma conta compartilhada e somente leitura: ações de criar/editar/deletar ficam desabilitadas na interface e também bloqueadas no servidor.
+Clique em **"Ver demo"** na tela de login. Você entra direto numa conta com dados de exemplo já preenchidos (gastos, metas, contas fixas, insights do assistente) — sem cadastro e sem senha. É uma conta compartilhada e somente leitura para os dados financeiros: ações de criar/editar/deletar ficam bloqueadas no servidor. Se o chat estiver habilitado, cada visitante recebe uma conversa temporária separada.
 
 ---
 
@@ -41,7 +41,7 @@ A interface consome uma API REST Spring Boot com autenticação JWT, e segue um 
 - 🐷 **Poupança** — metas de economia com valor-alvo e prazo opcional, progresso calculado a partir dos aportes, registrar aporte em um modal dedicado (vira um gasto de categoria Poupança automaticamente)
 - 📥 **Importar Extrato (OFX)** — upload do arquivo do banco, tela de revisão com categoria editável por transação antes de confirmar, duplicata já identificada e desmarcada
 - 📈 **Evolução** — gráfico de linha com entradas, saídas e saldo dos últimos 3/6/12 meses
-- 🤖 **Assistente Financeiro** — cards de insight (orçamento estourado, ritmo de gastos, categoria em alta, dicas) priorizados por severidade
+- 🤖 **Assistente Financeiro** — insights por regras e chat opcional para perguntar sobre gastos, períodos e orçamentos. O chat mostra aviso antes de enviar dados à OpenAI e não altera lançamentos
 - 📁 **Relatórios** — gráficos de pizza e barra, exportação em CSV
 - 📱 **Layout responsivo** — sidebar fixa no desktop, menu hambúrguer no mobile, tabelas com rolagem horizontal
 
