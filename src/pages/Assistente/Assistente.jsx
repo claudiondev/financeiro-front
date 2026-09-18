@@ -5,6 +5,7 @@ import Card from '../../components/ui/Card'
 import EmptyState from '../../components/ui/EmptyState'
 import PageSkeleton from '../../components/ui/Skeleton'
 import InsightCard from '../../components/InsightCard'
+import ChatAssistente from '../../components/ChatAssistente'
 
 export default function Assistente() {
   const [insights, setInsights] = useState([])
@@ -50,6 +51,8 @@ export default function Assistente() {
           <EmptyState message="Nada a destacar por enquanto — continue registrando seus gastos para receber insights personalizados." />
         </Card>
       )}
+
+      <ChatAssistente />
     </div>
   )
 }
