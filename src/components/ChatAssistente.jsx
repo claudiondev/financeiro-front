@@ -10,6 +10,15 @@ const SUGESTOES = [
   'Como estão meus orçamentos neste mês?',
 ]
 
+function formatarResposta(texto) {
+  // O modelo pode devolver negrito em Markdown mesmo quando pedimos texto simples.
+  return texto.split(/(\*\*[^*\n]+\*\*)/g).map((trecho, indice) =>
+    trecho.startsWith('**') && trecho.endsWith('**')
+      ? <strong key={indice} className="font-semibold">{trecho.slice(2, -2)}</strong>
+      : trecho,
+  )
+}
+
 export default function ChatAssistente() {
   const [habilitado, setHabilitado] = useState(false)
   const [carregandoStatus, setCarregandoStatus] = useState(true)
@@ -122,7 +131,7 @@ export default function ChatAssistente() {
           {mensagens.map((mensagem) => (
             <div key={mensagem.id} className={`flex ${mensagem.papel === 'usuario' ? 'justify-end' : 'justify-start'}`}>
               <p className={`max-w-[90%] rounded-xl px-4 py-3 text-sm whitespace-pre-wrap break-words ${mensagem.papel === 'usuario' ? 'bg-primary text-white' : 'bg-background text-text-primary'}`}>
-                {mensagem.texto}
+                {mensagem.papel === 'assistente' ? formatarResposta(mensagem.texto) : mensagem.texto}
               </p>
             </div>
           ))}
